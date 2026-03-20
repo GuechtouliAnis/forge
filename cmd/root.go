@@ -1,3 +1,5 @@
+// Package cmd contains all CLI subcommands for Forge.
+// Each file in this package defines one subcommand and registers it with the root command.
 package cmd
 
 import (
@@ -17,6 +19,9 @@ var rootCmd = &cobra.Command{
 
 var githubUsername string
 
+// username is a persistent flag available to all subcommands
+// used for Go module paths in the format github.com/username/project
+// falls back to git config user.name if not provided
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&githubUsername, "username", "u", "", "Your GitHub username")
 }

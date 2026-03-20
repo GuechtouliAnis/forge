@@ -17,6 +17,7 @@ var cloneCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		repo := args[0]
 
+		// resolve language from flags, empty string means no language setup
 		lang := ""
 		if clonePy {
 			lang = "py"
@@ -24,13 +25,18 @@ var cloneCmd = &cobra.Command{
 			lang = "go"
 		}
 
+		// true tells CreateProject to run git init and initial commit
 		return internal.Clone(repo, lang, githubUsername)
 	},
 }
 
+// cloneCmd clones a git repository and optionally sets up the development environment.
+// Use --py for Python projects or --go for Go projects.
+// Use -u to provide a GitHub username for Go module paths.
+
+// init registers the clone command and its flags with the root command.
 func init() {
 	cloneCmd.Flags().BoolVar(&clonePy, "py", false, "Set up Python environment")
 	cloneCmd.Flags().BoolVar(&cloneGo, "go", false, "Set up Go environment")
-
 	rootCmd.AddCommand(cloneCmd)
 }
