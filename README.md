@@ -2,6 +2,8 @@
 
 Personal dev CLI — clone, scaffold, and set up projects your way.
 
+> Forge is designed for Linux and macOS. Windows is not currently supported.
+
 ## Commands
 
 ### `forge clone`
