@@ -1,0 +1,13 @@
+# binaries
+forge
+*.exe
+
+# environment
+.env
+
+# Go specific
+vendor/
+
+# OS
+.DS_Store
+Thumbs.db
