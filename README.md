@@ -13,6 +13,15 @@ forge clone --go git@github.com:user/repo.git   # Go project
 forge clone git@github.com:user/repo.git        # just clone, no setup
 ```
 
+### `forge gitignore`
+
+Generates a `.gitignore` for the current project.
+```bash
+forge gitignore        # generic
+forge gitignore --py   # Python project
+forge gitignore --go   # Go project
+```
+
 **Flags:**
 - `--py` — creates a venv, upgrades pip, installs from `pyproject.toml` or `requirements.txt` if present
 - `--go` — runs `go mod init` if no `go.mod` exists, then `go mod tidy`
