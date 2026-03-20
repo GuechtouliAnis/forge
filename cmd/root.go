@@ -14,6 +14,12 @@ var rootCmd = &cobra.Command{
 	Long:  "Forge - build, clone, and scaffold projects your way",
 }
 
+var githubUsername string
+
+func init() {
+	rootCmd.PersistentFlags().StringVarP(&githubUsername, "username", "u", "", "Your GitHub username")
+}
+
 // Execute is called by main.go to start the CLI.
 // Cobra takes over and routes to the right command
 func Execute() {
