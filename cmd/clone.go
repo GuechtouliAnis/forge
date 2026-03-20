@@ -5,7 +5,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var cloneLang string
+var (
+	clonePy bool
+	cloneGo bool
+)
 
 var cloneCmd = &cobra.Command{
 	Use:   "clone [repo]",
@@ -13,12 +16,21 @@ var cloneCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		repo := args[0]
-		return internal.Clone(repo, cloneLang, githubUsername)
+
+		lang := ""
+		if clonePy {
+			lang = "py"
+		} else if cloneGo {
+			lang = "go"
+		}
+
+		return internal.Clone(repo, lang, githubUsername)
 	},
 }
 
 func init() {
-	cloneCmd.Flags().StringVarP(&cloneLang, "lang", "l", "", "Language setup: py or go")
+	cloneCmd.Flags().BoolVar(&clonePy, "py", false, "Set up Python environment")
+	cloneCmd.Flags().BoolVar(&cloneGo, "go", false, "Set up Go environment")
 
 	rootCmd.AddCommand(cloneCmd)
 }
