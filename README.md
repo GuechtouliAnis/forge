@@ -22,7 +22,26 @@ forge gitignore --py   # Python project
 forge gitignore --go   # Go project
 ```
 
-**Flags:**
+### `forge new`
+
+Scaffolds a fresh project locally without git.
+```bash
+forge new --py myproject    # Python project
+forge new --go myproject    # Go project
+forge new myproject         # generic, no language setup
+```
+
+### `forge init`
+
+Same as `new` but initializes a git repository and creates an initial commit.
+```bash
+forge init --py myproject   # Python project with git
+forge init --go myproject   # Go project with git
+forge init myproject        # generic with git
+```
+
+## Flags
+
 - `--py` — creates a venv, upgrades pip, installs from `pyproject.toml` or `requirements.txt` if present
 - `--go` — runs `go mod init` if no `go.mod` exists, then `go mod tidy`
 - `-u / --username` — GitHub username for Go module path (falls back to git config if not provided)
@@ -40,7 +59,6 @@ go build -o forge .
 sudo mv forge /usr/local/bin/
 ```
 
-## Roadmap
+## Author
 
-- `forge new --py/--go <name>` — scaffold a fresh project from scratch
-- `forge gitignore --py/--go` — generate a `.gitignore` for the project type
+[Guechtouli Anis](https://github.com/GuechtouliAnis)
