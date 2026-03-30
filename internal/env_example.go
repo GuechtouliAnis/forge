@@ -1,3 +1,5 @@
+// Package internal contains the core logic for all Forge commands.
+// Functions here are language-agnostic helpers called by cmd/ subcommands.
 package internal
 
 import (
@@ -6,6 +8,9 @@ import (
 	"strings"
 )
 
+// ParseEnv reads a .env file and returns a sanitized string suitable for .env.example.
+// Values are stripped from key=value pairs, inline comments are preserved.
+// Warns if duplicate keys are detected.
 func ParseEnv(path string) (string, error) {
 
 	data, err := os.ReadFile(path)
@@ -38,6 +43,9 @@ func ParseEnv(path string) (string, error) {
 	return strings.Join(result, "\n"), nil
 }
 
+// transformLine processes a single line from a .env file.
+// Comment lines are kept as-is, key=value lines have their value stripped,
+// inline comments are preserved. Malformed lines return an empty string.
 func transformLine(line string) string {
 	equal_index := strings.Index(line, "=")
 	hasht_index := strings.Index(line, "#")
@@ -57,6 +65,8 @@ func transformLine(line string) string {
 
 }
 
+// WriteEnvExample writes content to path as a .env.example file.
+// If the file already exists, the user is prompted for confirmation before overwriting.
 func WriteEnvExample(path string, content string) error {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -71,6 +81,8 @@ func WriteEnvExample(path string, content string) error {
 	return os.WriteFile(path, []byte(content), 0644)
 }
 
+// WriteEnvExampleForce writes content to path as a .env.example file without prompting.
+// Used when the -y flag is passed to forge env.
 func WriteEnvExampleForce(path string, content string) error {
 	return os.WriteFile(path, []byte(content), 0644)
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0] - 2026-03-30
+
+### Added
+- `forge env` — generate a `.env.example` from `.env`, stripping values and preserving comments
+- `forge env -y` — overwrite existing `.env.example` without prompt
+- Duplicate key detection with warnings during `.env` parsing
+
 ## [1.0.0] - 2026-03-20
 
 ### Added

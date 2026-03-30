@@ -24,7 +24,11 @@ var envCmd = &cobra.Command{
 	},
 }
 
+// envCmd generates a .env.example file from the current .env file.
+// Values are stripped, comments are preserved, duplicate keys are flagged.
+// Use -y to overwrite an existing .env.example without being prompted.
+// init registers the env command and its flags with the root command.
 func init() {
-	envCmd.Flags().BoolVarP(&envYes, "yes", "y", false, "Create .env.example from scratch")
+	envCmd.Flags().BoolVarP(&envYes, "yes", "y", false, "Overwrite existing .env.example without prompt")
 	rootCmd.AddCommand(envCmd)
 }

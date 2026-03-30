@@ -42,6 +42,13 @@ forge init --go myproject   # Go project with git
 forge init myproject        # generic with git
 ```
 
+### `forge env`
+Generates a `.env.example` from the current `.env` file, stripping values and preserving comments.
+```bash
+forge env        # generate .env.example, prompt if it already exists
+forge env -y     # overwrite existing .env.example without prompt
+```
+
 ## Flags
 
 - `--py` — creates a venv, upgrades pip, installs from `pyproject.toml` or `requirements.txt` if present
@@ -57,6 +64,7 @@ forge init myproject        # generic with git
 ```bash
 git clone git@github.com:GuechtouliAnis/forge.git
 cd forge
+go mod tidy
 go build -o forge .
 sudo mv forge /usr/local/bin/
 ```
