@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.1] - 2026-04-01
+### Fixed
+- `forge env` — correctly handles `#` characters inside quoted values (`"val#ue"`, `'val#ue'`)
+- Replaced position-based parsing with regex for reliable inline comment detection
+
 ## [1.1.0] - 2026-03-30
 
 ### Added

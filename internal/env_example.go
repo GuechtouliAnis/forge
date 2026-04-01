@@ -47,22 +47,45 @@ func ParseEnv(path string) (string, error) {
 // Comment lines are kept as-is, key=value lines have their value stripped,
 // inline comments are preserved. Malformed lines return an empty string.
 func transformLine(line string) string {
-	equal_index := strings.Index(line, "=")
-	hasht_index := strings.Index(line, "#")
-
-	if hasht_index == 0 {
+	if strings.TrimSpace(line) == "" {
 		return line
 	}
-	if equal_index >= 0 {
+	if strings.HasPrefix(strings.TrimSpace(line), "#") {
+		return line
+	}
 
-		if hasht_index > equal_index {
-			return line[:equal_index+1] + "  " + line[hasht_index:]
-		} else {
-			return line[:equal_index+1]
+	eqIdx := strings.Index(line, "=")
+	if eqIdx < 0 {
+		return ""
+	}
+
+	key := line[:eqIdx]
+	rest := line[eqIdx+1:]
+
+	// check if value is quoted
+	trimmed := strings.TrimSpace(rest)
+	if len(trimmed) > 0 && (trimmed[0] == '"' || trimmed[0] == '\'') {
+		quote := trimmed[0]
+		// find closing quote
+		closeIdx := strings.IndexByte(trimmed[1:], quote)
+		if closeIdx >= 0 {
+			// everything after closing quote is potential comment
+			after := strings.TrimSpace(trimmed[closeIdx+2:])
+			if strings.HasPrefix(after, "#") {
+				return key + "=  " + after
+			}
+			return key + "="
 		}
 	}
-	return ""
 
+	// unquoted: first # is comment
+	hashIdx := strings.Index(rest, "#")
+	if hashIdx >= 0 {
+		comment := strings.TrimSpace(rest[hashIdx:])
+		return key + "=  " + comment
+	}
+
+	return key + "="
 }
 
 // WriteEnvExample writes content to path as a .env.example file.

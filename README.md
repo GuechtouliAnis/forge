@@ -1,4 +1,5 @@
 # Forge 🔨
+*In the heat of creation, Forge shapes raw repositories into living projects — one command, one strike at a time.*
 
 Personal dev CLI — clone, scaffold, and set up projects your way.
 
@@ -72,3 +73,5 @@ sudo mv forge /usr/local/bin/
 ## Author
 
 [Guechtouli Anis](https://github.com/GuechtouliAnis)
+
+<p align="center"><sub>Where data sparks the light of revelation. ✨</sub></p>
