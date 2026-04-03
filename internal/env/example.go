@@ -26,13 +26,16 @@ func ParseEnv(path string) (string, error) {
 
 	for _, line := range lines {
 		ln := transformLine(line)
-		if ln == "" {
-			result = append(result, ln)
-			continue
-		}
-		eq := strings.Index(ln, "=")
-		if eq > 0 {
-			key := strings.TrimSpace(ln[:eq])
+
+		// look for the index in which the first value ends
+		eqIdx := strings.Index(ln, "=")
+		if eqIdx > 0 {
+			key := strings.TrimSpace(ln[:eqIdx])
+			// TODO: REPLACE LATER WITH A PROPER "ValidateKey(key string)" func
+			if strings.ContainsAny(key, " \t\"'") {
+				fmt.Printf("warning: malformed key %q\n", key)
+				continue
+			}
 			if seen[key] {
 				fmt.Printf("warning: duplicate key %s\n", key)
 			}
@@ -47,13 +50,16 @@ func ParseEnv(path string) (string, error) {
 // Comment lines are kept as-is, key=value lines have their value stripped,
 // inline comments are preserved. Malformed lines return an empty string.
 func transformLine(line string) string {
+	// return empty line as is
 	if strings.TrimSpace(line) == "" {
 		return line
 	}
+	// return comment line as is
 	if strings.HasPrefix(strings.TrimSpace(line), "#") {
 		return line
 	}
 
+	// if = not found in line
 	eqIdx := strings.Index(line, "=")
 	if eqIdx < 0 {
 		return ""
@@ -70,6 +76,7 @@ func transformLine(line string) string {
 		closeIdx := strings.IndexByte(trimmed[1:], quote)
 		if closeIdx >= 0 {
 			// everything after closing quote is potential comment
+			// closeIdx is relative to trimmed[1:], so +2 skips both the offset and the closing quote
 			after := strings.TrimSpace(trimmed[closeIdx+2:])
 			if strings.HasPrefix(after, "#") {
 				return key + "=  " + after
