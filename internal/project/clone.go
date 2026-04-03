@@ -1,18 +1,19 @@
 // Package internal contains the core logic for all Forge commands.
 // Functions here are language-agnostic helpers called by cmd/ subcommands.
-package internal
+package project
 
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
+
+	"github.com/GuechtouliAnis/forge/internal/lang"
 )
 
 // Clone clones a git repository and optionally sets up the development environment.
 // lang can be "py" for Python, "go" for Go, or empty to skip environment setup.
 // username is used for Go module paths, falls back to git config if empty.
-func Clone(repo string, lang string, username string) error {
+func Clone(repo string, language string, username string) error {
 
 	fmt.Println("Cloning", repo)
 	if err := run("git", "clone", repo); err != nil {
@@ -32,23 +33,13 @@ func Clone(repo string, lang string, username string) error {
 	}
 
 	// route to the correct environment setup based on lang flag
-	switch lang {
+	switch language {
 	case "py":
-		return SetupPython()
+		return lang.SetupPython()
 	case "go":
-		return SetupGo(username)
+		return lang.SetupGo(username)
 	}
 
 	// no lang provided: clone only, no environment setup
 	return nil
-}
-
-// run executes a shell command and pipes stdout/stderr directly to the terminal.
-// It is used by all internal functions to run external tools like git, go, and python.
-func run(name string, args ...string) error {
-	cmd := exec.Command(name, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
 }

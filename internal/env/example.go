@@ -1,6 +1,6 @@
 // Package internal contains the core logic for all Forge commands.
 // Functions here are language-agnostic helpers called by cmd/ subcommands.
-package internal
+package env
 
 import (
 	"fmt"

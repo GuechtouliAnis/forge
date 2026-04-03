@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.0] - 2026-04-03
+### Changed
+- Restructured `internal/` into domain packages: `project/`, `lang/`, `env/`, `git/`, `guard/`, `template/`, `sync/`
+
 ## [1.1.1] - 2026-04-01
 ### Fixed
 - `forge env` — correctly handles `#` characters inside quoted values (`"val#ue"`, `'val#ue'`)

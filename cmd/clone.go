@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/GuechtouliAnis/forge/internal"
+	"github.com/GuechtouliAnis/forge/internal/project"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,7 @@ var cloneCmd = &cobra.Command{
 		}
 
 		// true tells CreateProject to run git init and initial commit
-		return internal.Clone(repo, lang, githubUsername)
+		return project.Clone(repo, lang, githubUsername)
 	},
 }
 

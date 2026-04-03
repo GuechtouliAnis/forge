@@ -1,5 +1,5 @@
 // Package internal contains the core logic for all Forge commands.
-package internal
+package project
 
 import (
 	_ "embed" // required for go:embed directives

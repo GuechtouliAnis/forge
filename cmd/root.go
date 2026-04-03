@@ -14,7 +14,7 @@ var rootCmd = &cobra.Command{
 	Use:     "forge",
 	Short:   "Personal dev CLI",
 	Long:    "Forge - build, clone, and scaffold projects your way",
-	Version: "1.1.0",
+	Version: "1.2.0",
 }
 
 var githubUsername string

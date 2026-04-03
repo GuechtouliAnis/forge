@@ -1,14 +1,16 @@
-package internal
+package project
 
 import (
 	"fmt"
 	"os"
+
+	"github.com/GuechtouliAnis/forge/internal/lang"
 )
 
 // CreateProject scaffolds a new project directory with the given name and language.
 // It creates the folder, generates a .gitignore, and sets up the language environment.
 // If withGit is true, it also runs git init and creates an initial commit.
-func CreateProject(name string, lang string, withGit bool) error {
+func CreateProject(name string, language string, withGit bool) error {
 
 	// create the project directory with standard permissions
 	if err := os.Mkdir(name, 0755); err != nil {
@@ -21,19 +23,19 @@ func CreateProject(name string, lang string, withGit bool) error {
 	}
 
 	// generate .gitignore before anything else so venv and build artifacts are excluded
-	if err := CreateGitignore(lang); err != nil {
+	if err := CreateGitignore(language); err != nil {
 		return err
 	}
 
 	// route to the correct environment setup based on language
-	switch lang {
+	switch language {
 	case "py":
-		if err := SetupPython(); err != nil {
+		if err := lang.SetupPython(); err != nil {
 			return err
 		}
 	case "go":
 		// empty string — username falls back to git config inside SetupGo
-		if err := SetupGo(""); err != nil {
+		if err := lang.SetupGo(""); err != nil {
 			return err
 		}
 	}
