@@ -1,10 +1,17 @@
 # Changelog
 
 ## [1.2.0] - 2026-04-03
+
+### Added
+- Added key validation into exported `ValidateKey` function
+- Added warning for keys starting with digit, containing invalid characters, or lowercase
+- `ParseEnv` now strips `export ` prefix from lines before processing
+
 ### Changed
 - Restructured `internal/` into domain packages: `project/`, `lang/`, `env/`, `git/`, `guard/`, `template/`, `sync/`
 
 ## [1.1.1] - 2026-04-01
+
 ### Fixed
 - `forge env` — correctly handles `#` characters inside quoted values (`"val#ue"`, `'val#ue'`)
 - Replaced position-based parsing with regex for reliable inline comment detection

@@ -6,6 +6,17 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"unicode"
+)
+
+// validateKey return codes.
+// iota assigns incrementing integers starting from 0 (KeyValid = 0, KeyStartsWithDigit = 1, ...).
+// Used in ParseEnv's switch to distinguish warning-only cases from hard invalid ones.
+const (
+	KeyValid = iota
+	KeyStartsWithDigit
+	KeyInvalidChars
+	KeyIsLowercase
 )
 
 // ParseEnv reads a .env file and returns a sanitized string suitable for .env.example.
@@ -25,16 +36,26 @@ func ParseEnv(path string) (string, error) {
 	var result []string
 
 	for _, line := range lines {
+		// remove "export " if .env line starts with it
+		line = strings.TrimPrefix(line, "export ")
 		ln := transformLine(line)
 
 		// look for the index in which the first value ends
 		eqIdx := strings.Index(ln, "=")
 		if eqIdx > 0 {
 			key := strings.TrimSpace(ln[:eqIdx])
-			// TODO: REPLACE LATER WITH A PROPER "ValidateKey(key string)" func
-			if strings.ContainsAny(key, " \t\"'") {
-				fmt.Printf("warning: malformed key %q\n", key)
-				continue
+
+			// remove comment on "continue" to exclude invalid keys from .env.example
+			switch ValidateKey(key) {
+			case KeyStartsWithDigit:
+				fmt.Printf("warning: key %q starts with digit\n", key)
+				// continue
+			case KeyInvalidChars:
+				fmt.Printf("warning: key %q contains invalid characters\n", key)
+				// continue
+			case KeyIsLowercase:
+				fmt.Printf("warning: key %q contains lowercase characters\n", key)
+				// continue
 			}
 			if seen[key] {
 				fmt.Printf("warning: duplicate key %s\n", key)
@@ -44,6 +65,29 @@ func ParseEnv(path string) (string, error) {
 		result = append(result, ln)
 	}
 	return strings.Join(result, "\n"), nil
+}
+
+// ValidateKey checks if a .env key is valid and returns a code indicating the result.
+// Returns KeyValid if the key is valid, otherwise returns a code indicating the issue.
+// Callers are responsible for handling warnings and deciding whether to skip the key.
+func ValidateKey(key string) int {
+	const invalidKeyChars = "$!@{} \t"
+
+	if unicode.IsDigit(rune(key[0])) {
+		return KeyStartsWithDigit
+	}
+
+	if strings.ContainsAny(key, invalidKeyChars) {
+		return KeyInvalidChars
+	}
+
+	for _, c := range key {
+		if unicode.IsLower(c) {
+			return KeyIsLowercase
+		}
+	}
+
+	return KeyValid
 }
 
 // transformLine processes a single line from a .env file.
