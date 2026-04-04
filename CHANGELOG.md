@@ -10,6 +10,9 @@
 ### Changed
 - Restructured `internal/` into domain packages: `project/`, `lang/`, `env/`, `git/`, `guard/`, `template/`, `sync/`
 
+### Tests
+- Added table-driven tests for `ParseEnv`, `ValidateKey`, and `transformLine`
+
 ## [1.1.1] - 2026-04-01
 
 ### Fixed

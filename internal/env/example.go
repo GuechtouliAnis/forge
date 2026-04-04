@@ -96,7 +96,7 @@ func ValidateKey(key string) int {
 func transformLine(line string) string {
 	// return empty line as is
 	if strings.TrimSpace(line) == "" {
-		return line
+		return ""
 	}
 	// return comment line as is
 	if strings.HasPrefix(strings.TrimSpace(line), "#") {
