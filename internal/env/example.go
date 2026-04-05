@@ -98,8 +98,17 @@ func transformLine(line string) string {
 	if strings.TrimSpace(line) == "" {
 		return ""
 	}
-	// return comment line as is
+
+	// handle commented lines
 	if strings.HasPrefix(strings.TrimSpace(line), "#") {
+		// check if it's a commented key=value (e.g. # KEY=value) — strip the value
+		stripped := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "#"))
+		eqIdx := strings.Index(stripped, "=")
+		if eqIdx > 0 {
+			key := strings.TrimSpace(stripped[:eqIdx])
+			return "# " + key + "="
+		}
+		// plain comment, return as-is
 		return line
 	}
 

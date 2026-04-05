@@ -108,6 +108,12 @@ func TestTransformLine(t *testing.T) {
 		// malformed
 		{"no equals", "MALFORMED", ""},
 		{"KEY=NAME=VALUE", "KEY=NAME=VALUE", "KEY="},
+
+		// commented key=value lines (beta fix)
+		{"commented key=value", "# DATABASE_URL=postgres://user:pass@host/db", "# DATABASE_URL="},
+		{"commented key=value with spaces", "#  API_KEY=secret123", "# API_KEY="},
+		{"commented lowercase key", "# api_key=secret", "# api_key="},
+		{"commented key with invalid chars", "# API$KEY=secret", "# API$KEY="},
 	}
 
 	for _, tt := range tests {
