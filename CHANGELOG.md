@@ -2,6 +2,7 @@
 
 ## [1.2.1] - 2026-04-05
 ### Fixed
+- `forge env` — commented key=value lines with inline comments now preserve the comment (e.g. `# KEY=secret # comment` → `# KEY=  # comment`)
 - `forge env` — commented key=value lines (e.g. `# API_KEY=secret`) now have their values stripped instead of being returned as-is
 
 ## [1.2.0] - 2026-04-03

@@ -106,6 +106,12 @@ func transformLine(line string) string {
 		eqIdx := strings.Index(stripped, "=")
 		if eqIdx > 0 {
 			key := strings.TrimSpace(stripped[:eqIdx])
+			rest := stripped[eqIdx+1:]
+			hashIdx := strings.Index(rest, "#")
+			if hashIdx >= 0 {
+				comment := strings.TrimSpace(rest[hashIdx:])
+				return "# " + key + "=  " + comment
+			}
 			return "# " + key + "="
 		}
 		// plain comment, return as-is

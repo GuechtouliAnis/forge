@@ -114,6 +114,7 @@ func TestTransformLine(t *testing.T) {
 		{"commented key=value with spaces", "#  API_KEY=secret123", "# API_KEY="},
 		{"commented lowercase key", "# api_key=secret", "# api_key="},
 		{"commented key with invalid chars", "# API$KEY=secret", "# API$KEY="},
+		{"commented key=value with inline comment", "# API_KEY=secret # comment", "# API_KEY=  # comment"},
 	}
 
 	for _, tt := range tests {

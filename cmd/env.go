@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/GuechtouliAnis/forge/internal/env"
 	"github.com/spf13/cobra"
 )
@@ -13,6 +15,7 @@ var envCmd = &cobra.Command{
 	Use:   "env",
 	Short: "Generate a .env.example from .env",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		fmt.Printf("\n[beta] forge env: review your .env.example before committing — edge cases may apply.\n\n")
 		content, err := env.ParseEnv(".env")
 		if err != nil {
 			return err
