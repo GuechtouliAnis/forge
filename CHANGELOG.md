@@ -4,6 +4,7 @@
 
 ### Added
 - `forge env` — parent command grouping all env subcommands, prints help when called alone
+- `forge env check` — validate a .env file against key naming rules, reports errors and warnings with line numbers
 ### Changed
 - `forge env` renamed to `forge env example` — breaking change for existing users
 - `cmd/env.go` split into `cmd/env.go` (parent) and `cmd/env_example.go` (subcommand)
