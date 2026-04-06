@@ -1,37 +1,17 @@
 package cmd
 
-import (
-	"fmt"
+import "github.com/spf13/cobra"
 
-	"github.com/GuechtouliAnis/forge/internal/env"
-	"github.com/spf13/cobra"
-)
-
-var (
-	envYes bool
-)
-
+// envCmd is the parent command for all env-related subcommands.
+// Running `forge env` without a subcommand prints the help message.
 var envCmd = &cobra.Command{
 	Use:   "env",
-	Short: "Generate a .env.example from .env",
+	Short: "Manage .env files — generate, validate, populate, and sync",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Printf("\n[beta] forge env: review your .env.example before committing — edge cases may apply.\n\n")
-		content, err := env.ParseEnv(".env")
-		if err != nil {
-			return err
-		}
-		if envYes {
-			return env.WriteEnvExampleForce(".env.example", content)
-		}
-		return env.WriteEnvExample(".env.example", content)
+		return cmd.Help()
 	},
 }
 
-// envCmd generates a .env.example file from the current .env file.
-// Values are stripped, comments are preserved, duplicate keys are flagged.
-// Use -y to overwrite an existing .env.example without being prompted.
-// init registers the env command and its flags with the root command.
 func init() {
-	envCmd.Flags().BoolVarP(&envYes, "yes", "y", false, "Overwrite existing .env.example without prompt")
 	rootCmd.AddCommand(envCmd)
 }

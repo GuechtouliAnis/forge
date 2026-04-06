@@ -6,7 +6,21 @@ Personal dev CLI — clone, scaffold, and set up projects your way.
 > Forge is designed for Linux and macOS. Windows is not currently supported.
 
 ## Commands
+### `forge env`
+Groups all `.env` management subcommands — generate, validate, populate, and sync your env files.
+```bash
+forge env   # prints help and available subcommands
+```
 
+#### `forge env example`
+Generates a `.env.example` from the current `.env` file, stripping values and preserving comments.
+```bash
+forge env example      # generate .env.example, prompt if it already exists
+forge env example -y   # overwrite existing .env.example without prompt
+```
+
+> `forge env example` is currently in beta — review your `.env.example` before committing.
+---
 ### `forge clone`
 
 Clones a repository and sets up the development environment automatically.
@@ -41,13 +55,6 @@ Same as `new` but initializes a git repository and creates an initial commit.
 forge init --py myproject   # Python project with git
 forge init --go myproject   # Go project with git
 forge init myproject        # generic with git
-```
-
-### `forge env`
-Generates a `.env.example` from the current `.env` file, stripping values and preserving comments.
-```bash
-forge env        # generate .env.example, prompt if it already exists
-forge env -y     # overwrite existing .env.example without prompt
 ```
 
 ## Flags

@@ -1,6 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- `forge env` — parent command grouping all env subcommands, prints help when called alone
+### Changed
+- `forge env` renamed to `forge env example` — breaking change for existing users
+- `cmd/env.go` split into `cmd/env.go` (parent) and `cmd/env_example.go` (subcommand)
+### Fixed
+- `forge env example` — quoted values containing `#` in commented key=value lines now correctly strip the value instead of leaking it
+
 ## [1.2.1] - 2026-04-05
+
 ### Fixed
 - `forge env` — commented key=value lines with inline comments now preserve the comment (e.g. `# KEY=secret # comment` → `# KEY=  # comment`)
 - `forge env` — commented key=value lines (e.g. `# API_KEY=secret`) now have their values stripped instead of being returned as-is

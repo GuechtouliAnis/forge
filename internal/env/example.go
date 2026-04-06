@@ -107,6 +107,22 @@ func transformLine(line string) string {
 		if eqIdx > 0 {
 			key := strings.TrimSpace(stripped[:eqIdx])
 			rest := stripped[eqIdx+1:]
+
+			// reuse quoted value logic
+			trimmed := strings.TrimSpace(rest)
+			if len(trimmed) > 0 && (trimmed[0] == '"' || trimmed[0] == '\'') {
+				quote := trimmed[0]
+				closeIdx := strings.IndexByte(trimmed[1:], quote)
+				if closeIdx >= 0 {
+					after := strings.TrimSpace(trimmed[closeIdx+2:])
+					if strings.HasPrefix(after, "#") {
+						return "# " + key + "=  " + after
+					}
+					return "# " + key + "="
+				}
+			}
+
+			// unquoted: first # is comment
 			hashIdx := strings.Index(rest, "#")
 			if hashIdx >= 0 {
 				comment := strings.TrimSpace(rest[hashIdx:])
