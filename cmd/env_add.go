@@ -51,7 +51,7 @@ var envAddCmd = &cobra.Command{
 		}
 
 		if len(selected) == 0 {
-			return fmt.Errorf("no flag provided — use --db, --ai, --web, --redis, --monitoring, or --neo4j")
+			return fmt.Errorf("ERROR: no flag provided — use --db, --ai, --web, --redis, --monitoring, or --neo4j")
 		}
 
 		return env.AddEnv(path, selected)

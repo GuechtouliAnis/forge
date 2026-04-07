@@ -6,10 +6,34 @@ Personal dev CLI — clone, scaffold, and set up projects your way.
 > Forge is designed for Linux and macOS. Windows is not currently supported.
 
 ## Commands
+
 ### `forge env`
-Groups all `.env` management subcommands — generate, validate, populate, and sync your env files.
+Groups all `.env` management subcommands — generate, validate, and populate your env files.
 ```bash
 forge env   # prints help and available subcommands
+```
+
+#### `forge env init`
+Initializes a .env file from .env.example. If no example file exists, it creates an empty one. It also automatically adds the target file to .gitignore to prevent secret leaks.
+```bash
+forge env init                 # create .env and update .gitignore
+forge env init .env.dev        # initialize a custom path
+forge env init --no-gitignore  # initialize without modifying .gitignore
+```
+
+#### `forge env check`
+Validates a `.env` file against key naming rules, reporting errors and warnings with line numbers.
+```bash
+forge env check            # validate .env, show errors and warnings
+forge env check -e         # show errors only
+forge env check .env.prod  # validate a specific file
+```
+
+#### `forge env add`
+Appends predefined variable sets (presets) to your .env file. It skips existing keys and adds section headers for organization.
+```bash
+forge env add --db --redis     # add Database and Redis boilerplate
+forge env add --ai --web       # add AI and Web framework presets
 ```
 
 #### `forge env example`
@@ -20,14 +44,6 @@ forge env example -y   # overwrite existing .env.example without prompt
 ```
 
 > `forge env example` is currently in beta — review your `.env.example` before committing.
-
-#### `forge env check`
-Validates a `.env` file against key naming rules, reporting errors and warnings with line numbers.
-```bash
-forge env check            # validate .env, show errors and warnings
-forge env check -e         # show errors only
-forge env check .env.prod  # validate a specific file
-```
 ---
 ### `forge clone`
 

@@ -48,7 +48,7 @@ func AddEnv(path string, selected []string) error {
 	}
 
 	if skipped == total {
-		return fmt.Errorf("all predefined vars already exist in %s", path)
+		return fmt.Errorf("ERROR: all predefined vars already exist in %s", path)
 	}
 
 	// append to file

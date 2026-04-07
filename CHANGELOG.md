@@ -10,6 +10,7 @@
 - `forge env add` — skips existing keys with a warning, errors if all keys already exist
 - `forge env add` — inserts section comment per preset (e.g. `# db - added by forge env add`)
 - `forge env add` — host and port vars get sensible defaults, others default to `""`
+- `forge env init` — create a .env file from .env.example (or empty) and automatically register it in .gitignore unless `--no-gitignore` is passed
 
 ### Changed
 - `forge env` renamed to `forge env example` — breaking change for existing users
