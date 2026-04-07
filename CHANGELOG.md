@@ -6,6 +6,10 @@
 - `forge env` — parent command grouping all env subcommands, prints help when called alone
 - `forge env check` — validate a .env file against key naming rules, reports errors and warnings with line numbers
 - `forge env check` — warns on commented key=value lines that still contain a value
+- `forge env add` — append predefined variable sets to .env (`--db`, `--ai`, `--web`, `--redis`, `--monitoring`, `--neo4j`)
+- `forge env add` — skips existing keys with a warning, errors if all keys already exist
+- `forge env add` — inserts section comment per preset (e.g. `# db - added by forge env add`)
+- `forge env add` — host and port vars get sensible defaults, others default to `""`
 
 ### Changed
 - `forge env` renamed to `forge env example` — breaking change for existing users
