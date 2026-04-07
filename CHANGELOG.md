@@ -5,11 +5,15 @@
 ### Added
 - `forge env` — parent command grouping all env subcommands, prints help when called alone
 - `forge env check` — validate a .env file against key naming rules, reports errors and warnings with line numbers
+- `forge env check` — warns on commented key=value lines that still contain a value
+
 ### Changed
 - `forge env` renamed to `forge env example` — breaking change for existing users
 - `cmd/env.go` split into `cmd/env.go` (parent) and `cmd/env_example.go` (subcommand)
+
 ### Fixed
 - `forge env example` — quoted values containing `#` in commented key=value lines now correctly strip the value instead of leaking it
+- `forge env check` — empty value detection now correctly handles values that are inline comments (e.g. `KEY= # no value`)
 
 ## [1.2.1] - 2026-04-05
 

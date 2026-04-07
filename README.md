@@ -20,6 +20,14 @@ forge env example -y   # overwrite existing .env.example without prompt
 ```
 
 > `forge env example` is currently in beta — review your `.env.example` before committing.
+
+#### `forge env check`
+Validates a `.env` file against key naming rules, reporting errors and warnings with line numbers.
+```bash
+forge env check            # validate .env, show errors and warnings
+forge env check -e         # show errors only
+forge env check .env.prod  # validate a specific file
+```
 ---
 ### `forge clone`
 

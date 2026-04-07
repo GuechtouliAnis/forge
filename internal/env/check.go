@@ -52,8 +52,22 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 
 		line := strings.TrimPrefix(raw, "export ")
 
-		// skip comment lines
+		// skip comment lines, but warn if commented key has a value
 		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			stripped := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "#"))
+			eqIdx := strings.Index(stripped, "=")
+			if eqIdx > 0 {
+				key := strings.TrimSpace(stripped[:eqIdx])
+				value := strings.TrimSpace(stripped[eqIdx+1:])
+				// strip inline comment from value
+				hashIdx := strings.Index(value, "#")
+				if hashIdx >= 0 {
+					value = strings.TrimSpace(value[:hashIdx])
+				}
+				if value != "" {
+					add(lineNum, LevelWarn, fmt.Sprintf("commented key has value: %q — intentional?", key))
+				}
+			}
 			continue
 		}
 

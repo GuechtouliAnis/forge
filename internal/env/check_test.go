@@ -136,6 +136,12 @@ func TestCheckEnv(t *testing.T) {
 			level:    LevelWarn,
 			wantMsgs: []string{"empty value"},
 		},
+		{
+			name:     "commented line with value",
+			content:  "# COMMENTED_WITH_VALUE= value # no value here",
+			level:    LevelWarn,
+			wantMsgs: []string{"commented key has value"},
+		},
 	}
 
 	for _, tt := range tests {
