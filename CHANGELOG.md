@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [1.2.2] - 2026-04-10
+
 ### Added
 - `forge env` — parent command grouping all env subcommands, prints help when called alone
 - `forge env check` — validate a .env file against key naming rules, reports errors and warnings with line numbers
@@ -11,14 +14,18 @@
 - `forge env add` — inserts section comment per preset (e.g. `# db - added by forge env add`)
 - `forge env add` — host and port vars get sensible defaults, others default to `""`
 - `forge env init` — create a .env file from .env.example (or empty) and automatically register it in .gitignore unless `--no-gitignore` is passed
+- `forge env add` — warns if a preset key exists but is commented out in the .env file
 
 ### Changed
 - `forge env` renamed to `forge env example` — breaking change for existing users
 - `cmd/env.go` split into `cmd/env.go` (parent) and `cmd/env_example.go` (subcommand)
+- `forge env add` — replaced triple nested loop with a flat `presetKeys` map for O(1) comment key lookup
 
 ### Fixed
 - `forge env example` — quoted values containing `#` in commented key=value lines now correctly strip the value instead of leaking it
 - `forge env check` — empty value detection now correctly handles values that are inline comments (e.g. `KEY= # no value`)
+- `forge env check` — panic on lines containing only `=` (empty key) now returns a proper error instead of crashing
+- `forge env add` — single `eqIdx` lookup per line instead of recomputing inside each branch
 
 ## [1.2.1] - 2026-04-05
 

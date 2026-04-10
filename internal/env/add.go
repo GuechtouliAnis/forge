@@ -16,6 +16,14 @@ func AddEnv(path string, selected []string) error {
 		return err
 	}
 
+	// build preset key set for O(1) lookup
+	presetKeys := make(map[string]bool)
+	for _, preset := range selected {
+		for _, key := range presets[preset] {
+			presetKeys[key] = true
+		}
+	}
+
 	// check for existing keys in .env file
 	existing := make(map[string]bool)
 	for _, line := range strings.Split(string(data), "\n") {
@@ -26,14 +34,9 @@ func AddEnv(path string, selected []string) error {
 		eqIdx := strings.Index(line, "=")
 		if strings.HasPrefix(strings.TrimSpace(line), "#") {
 			if eqIdx > 0 {
-				key := strings.TrimSpace(line[1:eqIdx]) // skip the '#'
-				for _, preset := range selected {
-					for _, presetKey := range presets[preset] {
-						// if the key we are trying to insert is the same key that is commented
-						if key == presetKey {
-							fmt.Printf("warning: %s exists but is commented out\n", key)
-						}
-					}
+				key := strings.TrimSpace(line[1:eqIdx])
+				if presetKeys[key] {
+					fmt.Printf("warning: %s exists but is commented out\n", key)
 				}
 			}
 			continue
@@ -43,7 +46,7 @@ func AddEnv(path string, selected []string) error {
 		}
 	}
 
-	// build lines to append
+	// count skipped vs total
 	skipped := 0
 	total := 0
 
@@ -54,7 +57,6 @@ func AddEnv(path string, selected []string) error {
 			if existing[key] {
 				fmt.Printf("warning: %s already exists, skipping\n", key)
 				skipped++
-				continue
 			}
 		}
 	}
