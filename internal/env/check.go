@@ -3,6 +3,7 @@ package env
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -153,8 +154,9 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 	}
 
 	// warn: ending blank line
-	if len(lines) > 0 && strings.TrimSpace(lines[len(lines)-1]) == "" {
-		add(len(lines), LevelWarn, "file ends with blank line")
+	trimmed := strings.TrimRight(string(data), "\n")
+	if string(data) != trimmed && strings.TrimSpace(lines[len(lines)-2]) == "" {
+		add(len(lines)-1, LevelWarn, "file ends with blank line")
 	}
 
 	// warn: conformity with .env.example (skip silently if not found)
@@ -171,6 +173,15 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 			}
 		}
 	}
+	sort.Slice(issues, func(i, j int) bool {
+		if issues[i].Line == 0 {
+			return false
+		}
+		if issues[j].Line == 0 {
+			return true
+		}
+		return issues[i].Line < issues[j].Line
+	})
 
 	return issues, nil
 }
@@ -184,10 +195,13 @@ func parseKeysFromExample(path string) (map[string]bool, error) {
 	keys := make(map[string]bool)
 	for _, line := range strings.Split(string(data), "\n") {
 		line = strings.TrimPrefix(line, "export ")
-		if strings.HasPrefix(strings.TrimSpace(line), "#") || strings.TrimSpace(line) == "" {
+		if strings.TrimSpace(line) == "" {
 			continue
 		}
 		eqIdx := strings.Index(line, "=")
+		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
+		}
 		if eqIdx > 0 {
 			keys[strings.TrimSpace(line[:eqIdx])] = true
 		}
