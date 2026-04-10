@@ -15,3 +15,9 @@ Thumbs.db
 *.dylib
 vendor/
 .env
+*.out
+*.test
+/bin
+
+# logs
+*.logs

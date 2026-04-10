@@ -33,3 +33,6 @@ models/
 *.pt
 *.pth
 *.onnx
+*.log
+*.tmp
+*.bak

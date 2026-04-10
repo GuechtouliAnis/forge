@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+- `forge repo` — parent command grouping all repo subcommands, prints help when called alone
+- `forge repo gitignore [language]` — generate a .gitignore from embedded templates for `py`/`python`, `go`/`golang`, or generic if no language provided
+- `forge repo gitignore` — prompts before overwriting existing .gitignore, returns error on unsupported language argument
+- embedded gitignore templates compiled into binary at build time (no external files required)
 
 ## [1.2.2] - 2026-04-10
 

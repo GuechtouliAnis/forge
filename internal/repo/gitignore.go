@@ -1,5 +1,5 @@
 // Package internal contains the core logic for all Forge commands.
-package project
+package repo
 
 import (
 	_ "embed" // required for go:embed directives
@@ -20,20 +20,33 @@ var goGitignore string
 var genericGitignore string
 
 // CreateGitignore writes a .gitignore file to the current directory.
-// lang can be "py" for Python, "go" for Go, or empty for a generic gitignore.
+// lang can be "py" or "python" for Python, "go" or "golang" for Go, or empty for a generic gitignore.
 // Templates are embedded at compile time from internal/templates/.
 func CreateGitignore(lang string) error {
+
+	// check if .gitignore exists in current dir
+	if _, err := os.Stat(".gitignore"); err == nil {
+		fmt.Print(".gitignore already exists. Overwrite? [y/N]: ")
+		var input string
+		fmt.Scanln(&input)
+		if input != "y" && input != "Y" {
+			fmt.Println("Aborted.")
+			return nil
+		}
+	}
+
 	var content string
 
 	// select the appropriate template based on language
 	switch lang {
-	case "py":
+	case "py", "python":
 		content = pyGitignore
-	case "go":
+	case "go", "golang":
 		content = goGitignore
-	default:
-		// no lang provided: use the generic template
+	case "":
 		content = genericGitignore
+	default:
+		return fmt.Errorf("unsupported language %q — supported: py, python, go, golang", lang)
 	}
 
 	// 0644 = owner read/write, group and others read only
