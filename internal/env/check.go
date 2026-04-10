@@ -95,6 +95,12 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 
 		trimmedKey := strings.TrimSpace(key)
 
+		// guard: key is empty (line starts with '=')
+		if trimmedKey == "" {
+			add(lineNum, LevelError, "malformed line, empty key")
+			continue
+		}
+
 		switch ValidateKey(trimmedKey) {
 		case KeyStartsWithDigit:
 			add(lineNum, LevelError, fmt.Sprintf("key starts with digit: %q", trimmedKey))

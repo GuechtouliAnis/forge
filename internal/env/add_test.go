@@ -64,6 +64,12 @@ func TestAddEnv(t *testing.T) {
 			selected:    []string{"db"},
 			wantContain: []string{`DB_PASSWORD=""`},
 		},
+		{
+			name:        "commented key warns but is not skipped",
+			initial:     "# DB_HOST=localhost\n",
+			selected:    []string{"db"},
+			wantContain: []string{"DB_HOST=localhost"},
+		},
 	}
 
 	for _, tt := range tests {
