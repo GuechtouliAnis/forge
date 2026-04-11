@@ -15,6 +15,9 @@
 - `forge repo license` — infers author from `git config user.name` with prompt fallback, year from system clock
 - `forge repo license` — prompts before overwriting existing LICENSE
 
+### Changed
+- reorganised embedded templates into subdirectories — `templates/licenses/` for license templates, `templates/gitignore/` for gitignore templates, `templates/readme/` for readme template
+
 ## [1.2.2] - 2026-04-10
 
 ### Added

@@ -11,13 +11,13 @@ import (
 // gitignore templates are embedded into the binary at compile time
 // so the binary is self-contained and requires no external template files
 //
-//go:embed templates/python.gitignore
+//go:embed templates/gitignore/python.gitignore
 var pyGitignore string
 
-//go:embed templates/go.gitignore
+//go:embed templates/gitignore/go.gitignore
 var goGitignore string
 
-//go:embed templates/generic.gitignore
+//go:embed templates/gitignore/generic.gitignore
 var genericGitignore string
 
 // CreateGitignore writes a .gitignore file to the current directory.

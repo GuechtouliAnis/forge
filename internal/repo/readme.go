@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-//go:embed templates/template.readme
+//go:embed templates/readme/template.readme
 var readmeFile string
 
 // CreateReadme writes a README.md to the given path.
