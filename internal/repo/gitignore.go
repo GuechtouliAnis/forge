@@ -5,6 +5,7 @@ import (
 	_ "embed" // required for go:embed directives
 	"fmt"
 	"os"
+	"strings"
 )
 
 // gitignore templates are embedded into the binary at compile time
@@ -29,7 +30,7 @@ func CreateGitignore(lang string) error {
 		fmt.Print(".gitignore already exists. Overwrite? [y/N]: ")
 		var input string
 		fmt.Scanln(&input)
-		if input != "y" && input != "Y" {
+		if input != "y" && input != "Y" && strings.ToLower(input) != "yes" {
 			fmt.Println("Aborted.")
 			return nil
 		}

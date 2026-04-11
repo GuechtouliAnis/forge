@@ -45,52 +45,28 @@ forge env example -y   # overwrite existing .env.example without prompt
 
 > `forge env example` is currently in beta — review your `.env.example` before committing.
 ---
-### `forge clone`
 
-Clones a repository and sets up the development environment automatically.
+### `forge repo`
+Groups all repository lifecycle subcommands — scaffold, generate, and manage your repo structure.
 ```bash
-forge clone --py git@github.com:user/repo.git   # Python project
-forge clone --go git@github.com:user/repo.git   # Go project
-forge clone git@github.com:user/repo.git        # just clone, no setup
+forge repo   # prints help and available subcommands
 ```
 
-### `forge gitignore`
-
-Generates a `.gitignore` for the current project.
+#### `forge repo gitignore`
+Generates a `.gitignore` from an embedded template for the declared language, or a generic one if no language is provided. Prompts before overwriting an existing `.gitignore`.
 ```bash
-forge gitignore        # generic
-forge gitignore --py   # Python project
-forge gitignore --go   # Go project
+forge repo gitignore           # generate a generic .gitignore
+forge repo gitignore python    # generate a Python .gitignore
+forge repo gitignore go        # generate a Go .gitignore
 ```
 
-### `forge new`
-
-Scaffolds a fresh project locally without git.
+#### `forge repo readme`
+Generates a `README.md` scaffold in the current or specified directory. Project name is inferred from the directory name. Author is read from `git config user.name`, falls back to a prompt if not set.
 ```bash
-forge new --py myproject    # Python project
-forge new --go myproject    # Go project
-forge new myproject         # generic, no language setup
+forge repo readme              # generate README.md in current directory
+forge repo readme path/to/dir  # generate README.md in specified directory
 ```
-
-### `forge init`
-
-Same as `new` but initializes a git repository and creates an initial commit.
-```bash
-forge init --py myproject   # Python project with git
-forge init --go myproject   # Go project with git
-forge init myproject        # generic with git
-```
-
-## Flags
-
-- `--py` — creates a venv, upgrades pip, installs from `pyproject.toml` or `requirements.txt` if present
-- `--go` — runs `go mod init` if no `go.mod` exists, then `go mod tidy`
-- `-u / --username` — GitHub username for Go module path (falls back to git config if not provided)
-
-**Python setup behavior:**
-- `pyproject.toml` found → `pip install -e .`
-- `requirements.txt` found → `pip install -r requirements.txt`
-- neither found → venv created and ready, no deps installed
+---
 
 ## Installation
 ```bash
