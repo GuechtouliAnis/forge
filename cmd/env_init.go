@@ -13,8 +13,6 @@ var envInitCmd = &cobra.Command{
 	Short: "Initialize a .env file from .env.example",
 	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cmd.SilenceErrors = true
-		cmd.SilenceUsage = true
 		path := ".env"
 		if len(args) > 0 {
 			path = args[0]

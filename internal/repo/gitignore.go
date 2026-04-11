@@ -5,6 +5,7 @@ import (
 	_ "embed" // required for go:embed directives
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -20,13 +21,23 @@ var goGitignore string
 //go:embed templates/gitignore/generic.gitignore
 var genericGitignore string
 
-// CreateGitignore writes a .gitignore file to the current directory.
+// CreateGitignore writes a .gitignore file to the given path.
+// If path is empty, it defaults to the current directory.
 // lang can be "py" or "python" for Python, "go" or "golang" for Go, or empty for a generic gitignore.
-// Templates are embedded at compile time from internal/templates/.
-func CreateGitignore(lang string) error {
+// Templates are embedded at compile time from internal/repo/templates/gitignore/.
+func CreateGitignore(lang string, path string) error {
+	if path == "" {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		path = cwd
+	}
 
-	// check if .gitignore exists in current dir
-	if _, err := os.Stat(".gitignore"); err == nil {
+	gitignorePath := filepath.Join(path, ".gitignore")
+
+	// check if .gitignore exists at the target path
+	if _, err := os.Stat(gitignorePath); err == nil {
 		fmt.Print(".gitignore already exists. Overwrite? [y/N]: ")
 		var input string
 		fmt.Scanln(&input)
@@ -51,7 +62,7 @@ func CreateGitignore(lang string) error {
 	}
 
 	// 0644 = owner read/write, group and others read only
-	if err := os.WriteFile(".gitignore", []byte(content), 0644); err != nil {
+	if err := os.WriteFile(gitignorePath, []byte(content), 0644); err != nil {
 		return err
 	}
 

@@ -24,8 +24,6 @@ var envAddCmd = &cobra.Command{
 	Short: "Append predefined variable sets to .env",
 	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cmd.SilenceErrors = true
-		cmd.SilenceUsage = true
 		path := ".env"
 		if len(args) > 0 {
 			path = args[0]

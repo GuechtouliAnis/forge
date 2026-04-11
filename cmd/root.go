@@ -3,7 +3,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -11,10 +10,12 @@ import (
 
 // Base "forge" command
 var rootCmd = &cobra.Command{
-	Use:     "forge",
-	Short:   "Personal dev CLI",
-	Long:    "Forge - build, clone, and scaffold projects your way",
-	Version: "1.2.2",
+	Use:           "forge",
+	Short:         "Developer CLI for scaffolding repos and managing env files",
+	Long:          "Forge — scaffold repositories, generate licenses, READMEs, and manage environment files without the boilerplate.",
+	Version:       "1.3.0",
+	SilenceErrors: true,
+	SilenceUsage:  true,
 }
 
 var githubUsername string
@@ -30,7 +31,6 @@ func init() {
 // Cobra takes over and routes to the right command
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }

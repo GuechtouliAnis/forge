@@ -1,7 +1,6 @@
 # Forge 🔨
-*In the heat of creation, Forge shapes raw repositories into living projects — one command, one strike at a time.*
 
-Personal dev CLI — clone, scaffold, and set up projects your way.
+Forge is a developer CLI that scaffolds repositories and manages environment files — so you spend less time on setup and more time building.
 
 > Forge is designed for Linux and macOS. Windows is not currently supported.
 
@@ -55,9 +54,10 @@ forge repo   # prints help and available subcommands
 #### `forge repo gitignore`
 Generates a `.gitignore` from an embedded template for the declared language, or a generic one if no language is provided. Prompts before overwriting an existing `.gitignore`.
 ```bash
-forge repo gitignore           # generate a generic .gitignore
-forge repo gitignore python    # generate a Python .gitignore
-forge repo gitignore go        # generate a Go .gitignore
+forge repo gitignore                    # generate a generic .gitignore
+forge repo gitignore python             # generate a Python .gitignore
+forge repo gitignore go                 # generate a Go .gitignore
+forge repo gitignore go path/to/dir     # generate a Go .gitignore in specified directory
 ```
 
 #### `forge repo readme`
@@ -74,9 +74,28 @@ forge repo license             # generate MIT LICENSE in current directory
 forge repo license apache      # generate Apache LICENSE
 forge repo license gpl path/   # generate GPL LICENSE in specified directory
 ```
+
+#### `forge repo init`
+Initializes a new git repository with forge scaffolding — generates a `.gitignore`, `README.md`, and `LICENSE` in one shot. Defaults to generic gitignore and MIT license if no options provided.
+```bash
+forge repo init                                         # initialize current directory
+forge repo init my-project                              # create and initialize a new directory
+forge repo init my-project --lang go                    # initialize with Go gitignore
+forge repo init my-project --license apache             # initialize with Apache license
+forge repo init my-project --lang go --license apache   # Go gitignore, Apache license
+```
+
 ---
 
 ## Installation
+
+**Using Go:**
+```bash
+go install github.com/GuechtouliAnis/forge@latest
+```
+> Ensure `$(go env GOPATH)/bin` is in your `PATH`. On most systems this is `~/go/bin`.
+
+**Build from source:**
 ```bash
 git clone git@github.com:GuechtouliAnis/forge.git
 cd forge
@@ -89,4 +108,5 @@ sudo mv forge /usr/local/bin/
 
 [Guechtouli Anis](https://github.com/GuechtouliAnis)
 
+*In the heat of creation, Forge shapes raw repositories into living projects — one command, one strike at a time.*
 <p align="center"><sub>Where data sparks the light of revelation. ✨</sub></p>

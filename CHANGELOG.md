@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-04-11
+
 ### Added
 - `forge repo` — parent command grouping all repo subcommands, prints help when called alone
 - `forge repo gitignore [language]` — generate a .gitignore from embedded templates for `py`/`python`, `go`/`golang`, or generic if no language provided
@@ -14,9 +16,15 @@
 - `forge repo license [license] [path]` — generate a LICENSE file from embedded templates for `mit`, `apache`, `gpl`, `agpl`, `bsd`. defaults to `mit` if omitted
 - `forge repo license` — infers author from `git config user.name` with prompt fallback, year from system clock
 - `forge repo license` — prompts before overwriting existing LICENSE
+- `forge repo init [path]` — initialize a new git repository with forge scaffolding in one shot
+- `forge repo init` — generates .gitignore, README.md, and LICENSE then makes an initial commit
+- `forge repo init` — aborts commit if .env is staged, preventing accidental secret leaks
+- `forge repo init` — accepts `--lang` and `--license` flags to override defaults
 
 ### Changed
 - reorganised embedded templates into subdirectories — `templates/licenses/` for license templates, `templates/gitignore/` for gitignore templates, `templates/readme/` for readme template
+- `forge repo gitignore` — accepts optional path argument to generate .gitignore in a specified directory
+- `SilenceErrors` and `SilenceUsage` moved to root command — applies globally, eliminates duplicate error output and noisy usage dumps on failure
 
 ## [1.2.2] - 2026-04-10
 
