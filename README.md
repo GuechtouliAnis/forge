@@ -66,6 +66,14 @@ Generates a `README.md` scaffold in the current or specified directory. Project 
 forge repo readme              # generate README.md in current directory
 forge repo readme path/to/dir  # generate README.md in specified directory
 ```
+
+#### `forge repo license`
+Generates a `LICENSE` file in the current or specified directory. Author is read from `git config user.name`, falls back to a prompt if not set. Year is inferred from the system clock. Defaults to MIT if no license type is provided.
+```bash
+forge repo license             # generate MIT LICENSE in current directory
+forge repo license apache      # generate Apache LICENSE
+forge repo license gpl path/   # generate GPL LICENSE in specified directory
+```
 ---
 
 ## Installation

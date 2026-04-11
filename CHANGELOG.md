@@ -11,6 +11,9 @@
 - `forge repo readme` — infers project name from directory name, author from `git config user.name` with prompt fallback
 - `forge repo readme` — author rendered as a GitHub profile link
 - `forge env example` — tolerates `y`, `Y` and case insensitive forms of `yes`
+- `forge repo license [license] [path]` — generate a LICENSE file from embedded templates for `mit`, `apache`, `gpl`, `agpl`, `bsd`. defaults to `mit` if omitted
+- `forge repo license` — infers author from `git config user.name` with prompt fallback, year from system clock
+- `forge repo license` — prompts before overwriting existing LICENSE
 
 ## [1.2.2] - 2026-04-10
 
