@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- `forge repo changelog [path]` — generate a CHANGELOG.md scafoold in current or specified directory
+
 ## [1.3.0] - 2026-04-11
 
 ### Added
