@@ -3,7 +3,12 @@
 ## [Unreleased]
 
 ### Added
-- `forge repo changelog [path]` — generate a CHANGELOG.md scafoold in current or specified directory
+- `forge repo changelog [path]` — generate a CHANGELOG.md scaffold in the current or specified directory
+- `forge repo changelog` — prompts before overwriting existing changelog, handles any casing variant (e.g. `ChangElog.Md`)
+- `forge repo init` — now also generates a CHANGELOG.md as part of the scaffold
+
+### Changed
+- `forge repo gitignore`, `forge repo license`, `forge repo readme`, `forge repo changelog` — use shared `CheckFileExists` and `RemoveFileInsensitive` utilities for case-insensitive file detection and safe overwrite
 
 ## [1.3.0] - 2026-04-11
 

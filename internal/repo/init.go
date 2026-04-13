@@ -46,6 +46,9 @@ func CreateRepo(path string, lang string, license string) error {
 	if err := CreateLicense(license, path); err != nil {
 		return err
 	}
+	if err := CreateChangelog(path); err != nil {
+		return err
+	}
 
 	// stage all scaffolded files
 	gc := exec.Command("git", "-C", path, "add", ".")

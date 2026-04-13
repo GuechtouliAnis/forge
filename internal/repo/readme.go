@@ -26,19 +26,23 @@ func CreateReadme(path string) error {
 		path = cwd
 	}
 
-	readmePath := filepath.Join(path, "README.md")
-	readmePlain := filepath.Join(path, "README")
-
 	// check if a README already exists at the target path
-	_, err1 := os.Stat(readmePath)
-	_, err2 := os.Stat(readmePlain)
-	if err1 == nil || err2 == nil {
-		fmt.Print("A README already exists. Overwrite? [y/N]: ")
-		var input string
-		fmt.Scanln(&input)
-		if input != "y" && input != "Y" && strings.ToLower(input) != "yes" {
-			fmt.Println("Aborted")
-			return nil
+	for _, name := range []string{"README", "README.md"} {
+		exists, err := CheckFileExists(path, name)
+		if err != nil {
+			return err
+		}
+		if exists {
+			fmt.Print("A README already exists. Overwrite? [y/N]: ")
+			var input string
+			fmt.Scanln(&input)
+			if input != "y" && input != "Y" && strings.ToLower(input) != "yes" {
+				fmt.Println("Aborted")
+				return nil
+			}
+			RemoveFileInsensitive(path, "README")
+			RemoveFileInsensitive(path, "README.md")
+			break
 		}
 	}
 
@@ -61,7 +65,7 @@ func CreateReadme(path string) error {
 	content = strings.ReplaceAll(content, "{author}", authorLink)
 
 	// 0644 = owner read/write, group and others read only
-	if err := os.WriteFile(readmePath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(path, "README.md"), []byte(content), 0644); err != nil {
 		return err
 	}
 

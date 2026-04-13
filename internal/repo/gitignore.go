@@ -34,17 +34,20 @@ func CreateGitignore(lang string, path string) error {
 		path = cwd
 	}
 
-	gitignorePath := filepath.Join(path, ".gitignore")
-
 	// check if .gitignore exists at the target path
-	if _, err := os.Stat(gitignorePath); err == nil {
-		fmt.Print(".gitignore already exists. Overwrite? [y/N]: ")
+	exists, err := CheckFileExists(path, ".gitignore")
+	if err != nil {
+		return err
+	}
+	if exists {
+		fmt.Print("A gitignore already exists. Overwrite? [y/N]: ")
 		var input string
 		fmt.Scanln(&input)
 		if input != "y" && input != "Y" && strings.ToLower(input) != "yes" {
-			fmt.Println("Aborted.")
+			fmt.Println("Aborted")
 			return nil
 		}
+		RemoveFileInsensitive(path, ".gitignore")
 	}
 
 	var content string
@@ -62,7 +65,7 @@ func CreateGitignore(lang string, path string) error {
 	}
 
 	// 0644 = owner read/write, group and others read only
-	if err := os.WriteFile(gitignorePath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(path, ".gitignore"), []byte(content), 0644); err != nil {
 		return err
 	}
 

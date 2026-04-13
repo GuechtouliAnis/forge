@@ -39,19 +39,23 @@ func CreateLicense(license string, path string) error {
 		path = cwd
 	}
 
-	licensePath := filepath.Join(path, "LICENSE")
-	licenseMDPath := filepath.Join(path, "LICENSE.md")
-
 	// check if a LICENSE already exists at the target path
-	_, err1 := os.Stat(licensePath)
-	_, err2 := os.Stat(licenseMDPath)
-	if err1 == nil || err2 == nil {
-		fmt.Print("A LICENSE already exists. Overwrite? [y/N]: ")
-		var input string
-		fmt.Scanln(&input)
-		if input != "y" && input != "Y" && strings.ToLower(input) != "yes" {
-			fmt.Println("Aborted")
-			return nil
+	for _, name := range []string{"LICENSE", "LICENSE.md"} {
+		exists, err := CheckFileExists(path, name)
+		if err != nil {
+			return err
+		}
+		if exists {
+			fmt.Print("A LICENSE already exists. Overwrite? [y/N]: ")
+			var input string
+			fmt.Scanln(&input)
+			if input != "y" && input != "Y" && strings.ToLower(input) != "yes" {
+				fmt.Println("Aborted")
+				return nil
+			}
+			RemoveFileInsensitive(path, "LICENSE")
+			RemoveFileInsensitive(path, "LICENSE.md")
+			break
 		}
 	}
 
@@ -87,7 +91,7 @@ func CreateLicense(license string, path string) error {
 	content = strings.ReplaceAll(content, "{year}", year)
 
 	// 0644 = owner read/write, group and others read only
-	if err := os.WriteFile(licensePath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(path, "LICENSE"), []byte(content), 0644); err != nil {
 		return err
 	}
 
