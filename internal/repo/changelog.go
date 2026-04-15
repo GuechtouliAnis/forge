@@ -44,7 +44,7 @@ func CreateChangelog(path string) error {
 		}
 	}
 
-	content := strings.ReplaceAll(changelogFile, "{date}", time.Now().Format("2026-12-31"))
+	content := strings.ReplaceAll(changelogFile, "{date}", time.Now().Format("2006-01-02"))
 
 	if err := os.WriteFile(filepath.Join(path, "CHANGELOG.md"), []byte(content), 0644); err != nil {
 		return err

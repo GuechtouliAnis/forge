@@ -3,6 +3,7 @@
 Forge is a developer CLI that scaffolds repositories and manages environment files — so you spend less time on setup and more time building.
 
 > Forge is designed for Linux and macOS. Windows is not currently supported.
+> ⚠️ Forge is in early development. APIs and commands are subject to change.
 
 ## Commands
 
@@ -75,8 +76,15 @@ forge repo license apache      # generate Apache LICENSE
 forge repo license gpl path/   # generate GPL LICENSE in specified directory
 ```
 
+#### `forge repo changelog`
+Generates a `CHANGELOG.md` scaffold in the current or specified directory. Handles any casing variant of existing changelog files before overwriting.
+```bash
+forge repo changelog              # generate CHANGELOG.md in current directory
+forge repo changelog path/to/dir  # generate CHANGELOG.md in specified directory
+```
+
 #### `forge repo init`
-Initializes a new git repository with forge scaffolding — generates a `.gitignore`, `README.md`, and `LICENSE` in one shot. Defaults to generic gitignore and MIT license if no options provided.
+Initializes a new git repository with forge scaffolding — generates a `.gitignore`, `README.md`, `LICENSE`, and `CHANGELOG.md` in one shot. Defaults to generic gitignore and MIT license if no options provided.
 ```bash
 forge repo init                                         # initialize current directory
 forge repo init my-project                              # create and initialize a new directory
