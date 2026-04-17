@@ -9,6 +9,9 @@
 - `forge repo changelog` — added to README
 - `forge config` — new command group for managing `.forge.toml` configuration
 - `forge config new [path]` — generate a `.forge.toml` scaffold in the current or specified directory, prompts before overwriting existing file
+- `internal/config` — loads and parses `.forge.toml`, merges over defaults
+- `forge git` — new command group for git workflow commands with guardrails
+- `forge git commit <message>` — validate a commit message against `.forge.toml` rules before committing; checks format, domain allowlist, and message length
 
 ### Changed
 - `forge repo gitignore`, `forge repo license`, `forge repo readme`, `forge repo changelog` — use shared `CheckFileExists` and `RemoveFileInsensitive` utilities for case-insensitive file detection and safe overwrite

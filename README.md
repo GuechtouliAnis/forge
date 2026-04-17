@@ -95,6 +95,35 @@ forge repo init my-project --lang go --license apache   # Go gitignore, Apache l
 
 ---
 
+### `forge draft`
+Groups all `.forge.toml` management subcommands.
+```bash
+forge draft   # prints help and available subcommands
+```
+
+#### `forge draft new`
+Generates a `.forge.toml` configuration scaffold in the current or specified directory. Prompts before overwriting an existing file.
+```bash
+forge draft new              # generate .forge.toml in current directory
+forge draft new path/to/dir  # generate .forge.toml in specified directory
+```
+
+---
+
+### `forge git`
+Opinionated git helpers — not a git replacement. Forge handles commit structure and convention enforcement; for everything else, use git directly.
+```bash
+forge git   # prints help and available subcommands
+```
+
+#### `forge git commit`
+Validates a commit message against the domains and format defined in `.forge.toml`. Falls back to defaults if no config file exists.
+```bash
+forge git commit "[FEAT] add config loader"  # validate
+```
+
+---
+
 ## Installation
 
 **Using Go:**
