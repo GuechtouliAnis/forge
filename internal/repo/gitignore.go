@@ -43,7 +43,7 @@ func CreateGitignore(lang string, path string) error {
 		fmt.Print("A gitignore already exists. Overwrite? [y/N]: ")
 		var input string
 		fmt.Scanln(&input)
-		if input != "y" && input != "Y" && strings.ToLower(input) != "yes" {
+		if strings.ToLower(input) != "y" && strings.ToLower(input) != "yes" {
 			fmt.Println("Aborted")
 			return nil
 		}

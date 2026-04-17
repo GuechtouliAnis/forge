@@ -14,3 +14,6 @@ Thumbs.db
 
 # Plan
 PLAN.md
+
+internal/draft/
+draft.go

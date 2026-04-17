@@ -49,7 +49,7 @@ func CreateLicense(license string, path string) error {
 			fmt.Print("A LICENSE already exists. Overwrite? [y/N]: ")
 			var input string
 			fmt.Scanln(&input)
-			if input != "y" && input != "Y" && strings.ToLower(input) != "yes" {
+			if strings.ToLower(input) != "y" && strings.ToLower(input) != "yes" {
 				fmt.Println("Aborted")
 				return nil
 			}

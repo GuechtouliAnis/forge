@@ -28,7 +28,9 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 		return nil, err
 	}
 
+	// split .env file to lines
 	lines := strings.Split(string(data), "\n")
+	// declare an empty map to detect seen lines
 	seen := make(map[string]bool)
 	var issues []CheckIssue
 
@@ -55,7 +57,9 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 
 		// skip comment lines, but warn if commented key has a value
 		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			// strip line from comment sign
 			stripped := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "#"))
+			// check if line has equal sign
 			eqIdx := strings.Index(stripped, "=")
 			if eqIdx > 0 {
 				key := strings.TrimSpace(stripped[:eqIdx])
@@ -66,7 +70,7 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 					value = strings.TrimSpace(value[:hashIdx])
 				}
 				if value != "" {
-					add(lineNum, LevelWarn, fmt.Sprintf("commented key has value: %q — intentional?", key))
+					add(lineNum, LevelWarn, fmt.Sprintf("commented key: '%q' has value.", key))
 				}
 			}
 			continue
