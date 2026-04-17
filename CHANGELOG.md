@@ -7,6 +7,8 @@
 - `forge repo changelog` — prompts before overwriting existing changelog, handles any casing variant (e.g. `ChangElog.Md`)
 - `forge repo init` — now also generates a CHANGELOG.md as part of the scaffold
 - `forge repo changelog` — added to README
+- `forge config` — new command group for managing `.forge.toml` configuration
+- `forge config new [path]` — generate a `.forge.toml` scaffold in the current or specified directory, prompts before overwriting existing file
 
 ### Changed
 - `forge repo gitignore`, `forge repo license`, `forge repo readme`, `forge repo changelog` — use shared `CheckFileExists` and `RemoveFileInsensitive` utilities for case-insensitive file detection and safe overwrite
