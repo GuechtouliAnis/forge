@@ -29,11 +29,14 @@ For branching, history, rebasing, and anything else: use git directly.`,
 			return fmt.Errorf("could not load .forge.toml: %w", err)
 		}
 
-		if err := git.ValidateCommit(commitMsg, &cfg.Git.Commit); err != nil {
-			fmt.Fprintln(os.Stderr, "✗", err.Error())
+		valid, err := git.ValidateCommit(commitMsg, &cfg.Git.Commit)
+		if err != nil {
+			return fmt.Errorf("could not validate commit: %w", err)
+		}
+		if !valid {
+			fmt.Fprintln(os.Stderr, "✗ commit message does not match the required format")
 			os.Exit(1)
 		}
-
 		fmt.Println("✓ valid")
 		return nil
 	},

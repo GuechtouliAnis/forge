@@ -15,13 +15,5 @@ type CommitConfig struct {
 }
 
 func defaults() *Config {
-	return &Config{
-		Git: GitConfig{
-			Commit: CommitConfig{
-				Format:        "[{domain}] {message}",
-				Domains:       []string{"FEAT", "FIX", "REFACT", "DOCS", "TEST", "CHORE"},
-				MessageMaxLen: 100,
-			},
-		},
-	}
+	return &Config{}
 }

@@ -12,10 +12,13 @@
 - `internal/config` — loads and parses `.forge.toml`, merges over defaults
 - `forge git` — new command group for git workflow commands with guardrails
 - `forge git commit <message>` — validate a commit message against `.forge.toml` rules before committing; checks format, domain allowlist, and message length
+- `commit_test.go` — to test the behaviour of `forge git commit <message>`
 
 ### Changed
 - `forge repo gitignore`, `forge repo license`, `forge repo readme`, `forge repo changelog` — use shared `CheckFileExists` and `RemoveFileInsensitive` utilities for case-insensitive file detection and safe overwrite
 - `forge repo changelog` — date format fixed, using Go birthday format
+- `forge git commit <message>` — validation logic replaced: removed named capture groups, `CommitError` type, and `buildPattern`
+- `forge git commit` now uses `CreatePattern` (regex assembled via `regexp.QuoteMeta` + placeholder substitution) and `ValidateCommit` returns `(bool, error)` instead of a single error
 
 ### Deleted
 - internal/project package which had `clone` and helper function `run` has been dropped and will be replaced

@@ -4,7 +4,7 @@
 # If value is empty, forge falls back to default value
 
 [git.commit]
-format = "{message}"
+format = "[{domain}] {message}"
 domain = [
     "FEAT",   # New feature
     "FIX",    # Bug fix
