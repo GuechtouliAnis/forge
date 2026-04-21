@@ -122,6 +122,16 @@ Validates a commit message against the domains and format defined in `.forge.tom
 forge git commit "[FEAT] add config loader"  # validate
 ```
 
+#### `forge git clean`
+Scans local branches and flags ones that are stale by age or commits behind the base branch. Dry-run by default — `--remove` shows what will be deleted and prompts for confirmation, `--force` skips the prompt. `main`, `master`, and the default branch are always protected.
+```bash
+forge git clean                             # dry-run, show stale branches
+forge git clean --days 30                   # flag branches older than 30 days
+forge git clean --behind 10                 # flag branches 10+ commits behind
+forge git clean --days 30 --remove          # show deletions and prompt
+forge git clean --days 30 --remove --force  # delete without prompt
+```
+
 ---
 
 ## Installation

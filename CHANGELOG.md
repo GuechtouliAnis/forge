@@ -13,6 +13,10 @@
 - `forge git` — new command group for git workflow commands with guardrails
 - `forge git commit <message>` — validate a commit message against `.forge.toml` rules before committing; checks format, domain allowlist, and message length
 - `commit_test.go` — to test the behaviour of `forge git commit <message>`
+- `forge git clean` — detect and remove stale local branches by age or commits behind
+- `forge git clean` — dry-run by default, `--remove` shows deletions and prompts, `--force` skips confirmation
+- `forge git clean` — `main`, `master`, and default branch are always protected
+- `forge git clean` — reads `stale_days` and `commits_behind` from `[git.clean]` in `.forge.toml`
 
 ### Changed
 - `forge repo gitignore`, `forge repo license`, `forge repo readme`, `forge repo changelog` — use shared `CheckFileExists` and `RemoveFileInsensitive` utilities for case-insensitive file detection and safe overwrite
