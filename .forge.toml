@@ -3,8 +3,26 @@
 # All sections and keys are optional unless marked (required).
 # If value is empty, forge falls back to default value
 
+
+# ——— GIT CLEAN ———————————————————————————————————————————————————————————————
+[git.clean]
+# Days since last commit before a branch is considered dusty.
+# Set to 0 to disable age-based detection.
+stale_days = 30
+
+# How many commits behind base before a branch is considered dusty.
+# Set to 0 to disable behind-count detection.
+commits_behind = 10
+
+
+# ——— GIT COMMIT ——————————————————————————————————————————————————————————————
 [git.commit]
+# Commit message format template. Use {domain} and {message} as placeholders.
+# Set to "" to disable format enforcement (message is used as-is).
 format = "[{domain}] {message}"
+
+# Allowed domain prefixes for commit messages.
+# Set to [""] to disable domain enforcement (useful when format omits {domain}).
 domain = [
     "FEAT",   # New feature
     "FIX",    # Bug fix
@@ -13,4 +31,8 @@ domain = [
     "TEST",   # Tests
     "CHORE",  # Maintenance (deps, CI, version bumps)
 ]
+
+# Maximum allowed length for the commit message
+# Applies to {message} and not the whole format
+# Set to 0 for no restriction.
 message_max_length = 100
