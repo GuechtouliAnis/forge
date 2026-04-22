@@ -7,6 +7,21 @@ Forge is a developer CLI that scaffolds repositories and manages environment fil
 
 ## Commands
 
+### `forge config`
+Groups all `.forge.toml` management subcommands.
+```bash
+forge config   # prints help and available subcommands
+```
+
+#### `forge config new`
+Generates a `.forge.toml` configuration scaffold in the current or specified directory. Prompts before overwriting an existing file.
+```bash
+forge config new              # generate .forge.toml in current directory
+forge config new path/to/dir  # generate .forge.toml in specified directory
+```
+
+---
+
 ### `forge env`
 Groups all `.env` management subcommands — generate, validate, and populate your env files.
 ```bash
@@ -95,21 +110,6 @@ forge repo init my-project --lang go --license apache   # Go gitignore, Apache l
 
 ---
 
-### `forge draft`
-Groups all `.forge.toml` management subcommands.
-```bash
-forge draft   # prints help and available subcommands
-```
-
-#### `forge draft new`
-Generates a `.forge.toml` configuration scaffold in the current or specified directory. Prompts before overwriting an existing file.
-```bash
-forge draft new              # generate .forge.toml in current directory
-forge draft new path/to/dir  # generate .forge.toml in specified directory
-```
-
----
-
 ### `forge git`
 Opinionated git helpers — not a git replacement. Forge handles commit structure and convention enforcement; for everything else, use git directly.
 ```bash
@@ -134,11 +134,20 @@ forge git clean --days 30 --remove --force  # delete without prompt
 
 ---
 
+#### `forge git undo`
+Reverts the last commit and buffers the commit message to `.git/forge/undo_msg.txt` for reuse. Soft reset by default — staged files are preserved. `--hard` wipes uncommitted changes and requires confirmation if the worktree is dirty. Prompts before overwriting an existing buffered message on consecutive undos.
+```bash
+forge git undo          # soft reset, buffer last commit message
+forge git undo --hard   # destructive reset, prompt if dirty worktree
+```
+
+---
+
 ## Installation
 
 **Using Go:**
 ```bash
-go install github.com/GuechtouliAnis/forge@latest
+go install github.com/GuechtouliAnis/forge@v1.3.0
 ```
 > Ensure `$(go env GOPATH)/bin` is in your `PATH`. On most systems this is `~/go/bin`.
 
