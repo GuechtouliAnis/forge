@@ -165,7 +165,7 @@ func CleanGit(days int, behind int, remove bool, force bool) error {
 		fmt.Printf("Delete %d branch(es)? [y/N]: ", len(toDelete))
 		var input string
 		fmt.Scanln(&input)
-		if input != "y" && input != "Y" && strings.ToLower(input) != "yes" {
+		if strings.ToLower(input) != "y" && strings.ToLower(input) != "yes" {
 			fmt.Println("Aborted.")
 			return nil
 		}

@@ -17,6 +17,9 @@
 - `forge git clean` — dry-run by default, `--remove` shows deletions and prompts, `--force` skips confirmation
 - `forge git clean` — `main`, `master`, and default branch are always protected
 - `forge git clean` — reads `stale_days` and `commits_behind` from `[git.clean]` in `.forge.toml`
+- `forge git undo` — revert the last commit with message buffered to `.git/forge/undo_msg.txt` for reuse
+- `forge git undo` — soft reset by default, `--hard` wipes uncommitted changes with confirmation prompt
+- `forge git undo` — prompts before overwriting an existing buffered message on consecutive undos
 
 ### Changed
 - `forge repo gitignore`, `forge repo license`, `forge repo readme`, `forge repo changelog` — use shared `CheckFileExists` and `RemoveFileInsensitive` utilities for case-insensitive file detection and safe overwrite

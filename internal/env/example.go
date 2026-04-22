@@ -178,7 +178,7 @@ func WriteEnvExample(path string, content string) error {
 		var input string
 		fmt.Print(".env.example already exists, overwrite? (y/n): ")
 		fmt.Scan(&input)
-		if input != "y" && input != "Y" && strings.ToLower(input) != "yes" {
+		if strings.ToLower(input) != "y" && strings.ToLower(input) != "yes" {
 			return nil // abort
 		}
 	}
