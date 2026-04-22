@@ -1,4 +1,4 @@
-package cmd
+package cmdenv
 
 import "github.com/spf13/cobra"
 
@@ -12,6 +12,6 @@ var envCmd = &cobra.Command{
 	},
 }
 
-func init() {
-	rootCmd.AddCommand(envCmd)
+func Register(root *cobra.Command) {
+	root.AddCommand(envCmd)
 }

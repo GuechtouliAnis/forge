@@ -1,4 +1,4 @@
-package cmd
+package cmdconfig
 
 import "github.com/spf13/cobra"
 
@@ -12,6 +12,6 @@ var configCmd = &cobra.Command{
 	},
 }
 
-func init() {
-	rootCmd.AddCommand(configCmd)
+func Register(root *cobra.Command) {
+	root.AddCommand(configCmd)
 }

@@ -23,6 +23,9 @@
 - `forge repo changelog` — date format fixed, using Go birthday format
 - `forge git commit <message>` — validation logic replaced: removed named capture groups, `CommitError` type, and `buildPattern`
 - `forge git commit` now uses `CreatePattern` (regex assembled via `regexp.QuoteMeta` + placeholder substitution) and `ValidateCommit` returns `(bool, error)` instead of a single error
+- `cmd/` refactored from flat file package into grouped subdirectories — `cmd/env/`, `cmd/repo/`, `cmd/git/`, `cmd/config/`
+- each command group now lives in its own package with a `Register(root *cobra.Command)` entry point
+- `cmd/root.go` now wires all command groups via `Register` calls instead of relying on `init()` side effects across files
 
 ### Deleted
 - internal/project package which had `clone` and helper function `run` has been dropped and will be replaced

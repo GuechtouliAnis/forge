@@ -1,4 +1,4 @@
-package cmd
+package cmdrepo
 
 import (
 	"github.com/GuechtouliAnis/forge/internal/repo"

@@ -1,4 +1,4 @@
-package cmd
+package cmdgit
 
 import (
 	"fmt"

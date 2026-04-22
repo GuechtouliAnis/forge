@@ -1,4 +1,4 @@
-package cmd
+package cmdenv
 
 import (
 	"github.com/GuechtouliAnis/forge/internal/env"

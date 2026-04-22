@@ -5,10 +5,15 @@ package cmd
 import (
 	"os"
 
+	cmdconfig "github.com/GuechtouliAnis/forge/cmd/config"
+	cmdenv "github.com/GuechtouliAnis/forge/cmd/env"
+	cmdgit "github.com/GuechtouliAnis/forge/cmd/git"
+	cmdrepo "github.com/GuechtouliAnis/forge/cmd/repo"
 	"github.com/spf13/cobra"
 )
 
-// Base "forge" command
+// Package cmd contains all CLI subcommands for Forge.
+// Each subdirectory defines a command group and registers it via Register(root).
 var rootCmd = &cobra.Command{
 	Use:           "forge",
 	Short:         "Developer CLI for scaffolding repos and managing env files",
@@ -26,10 +31,15 @@ var githubUsername string
 func init() {
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
 	rootCmd.PersistentFlags().StringVarP(&githubUsername, "username", "u", "", "Your GitHub username")
+
+	// register all command groups
+	cmdconfig.Register(rootCmd)
+	cmdenv.Register(rootCmd)
+	cmdgit.Register(rootCmd)
+	cmdrepo.Register(rootCmd)
 }
 
 // Execute is called by main.go to start the CLI.
-// Cobra takes over and routes to the right command
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

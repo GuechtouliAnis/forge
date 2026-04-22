@@ -1,4 +1,4 @@
-package cmd
+package cmdgit
 
 import "github.com/spf13/cobra"
 
@@ -17,6 +17,6 @@ For branching, history, rebasing, and anything else: use git directly.`,
 	},
 }
 
-func init() {
-	rootCmd.AddCommand(gitCmd)
+func Register(root *cobra.Command) {
+	root.AddCommand(gitCmd)
 }

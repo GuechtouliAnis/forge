@@ -1,4 +1,4 @@
-package cmd
+package cmdrepo
 
 import "github.com/spf13/cobra"
 
@@ -12,6 +12,6 @@ var repoCmd = &cobra.Command{
 	},
 }
 
-func init() {
-	rootCmd.AddCommand(repoCmd)
+func Register(root *cobra.Command) {
+	root.AddCommand(repoCmd)
 }

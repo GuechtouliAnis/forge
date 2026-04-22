@@ -1,4 +1,4 @@
-package cmd
+package cmdconfig
 
 import (
 	"github.com/GuechtouliAnis/forge/internal/config"
