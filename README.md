@@ -2,7 +2,7 @@
 
 Forge is a developer CLI that scaffolds repositories and manages environment files — so you spend less time on setup and more time building.
 
-> Forge is designed for Linux and macOS. Windows is not currently supported.
+> Forge is designed for Linux and macOS. Windows is not currently supported.<br/>
 > ⚠️ Forge is in early development. APIs and commands are subject to change.
 
 ## Commands
@@ -131,8 +131,6 @@ forge git clean --behind 10                 # flag branches 10+ commits behind
 forge git clean --days 30 --remove          # show deletions and prompt
 forge git clean --days 30 --remove --force  # delete without prompt
 ```
-
----
 
 #### `forge git undo`
 Reverts the last commit and buffers the commit message to `.git/forge/undo_msg.txt` for reuse. Soft reset by default — staged files are preserved. `--hard` wipes uncommitted changes and requires confirmation if the worktree is dirty. Prompts before overwriting an existing buffered message on consecutive undos.
