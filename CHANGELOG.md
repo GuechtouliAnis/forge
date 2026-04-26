@@ -20,6 +20,13 @@
 - `forge git undo` — revert the last commit with message buffered to `.git/forge/undo_msg.txt` for reuse
 - `forge git undo` — soft reset by default, `--hard` wipes uncommitted changes with confirmation prompt
 - `forge git undo` — prompts before overwriting an existing buffered message on consecutive undos
+- `forge git restore <search>` — recover a deleted or modified file from git history using fuzzy path matching
+- `forge git restore` — collision detection blocks overwrites of dirty or staged files unless `--force` is passed
+- `forge git restore` — interactive commit picker shows last 10 commits with diff stats, deletion commits filtered out
+- `forge git restore` — `--latest` skips the menu and restores from the most recent non-deletion commit
+- `forge git restore` — `--commit <hash>` pins restore to a specific commit
+- `forge git restore` — `--dry-run` previews match and target commit without touching the filesystem
+- `forge git restore` — restored file is left unstaged for user review
 
 ### Changed
 - `forge repo gitignore`, `forge repo license`, `forge repo readme`, `forge repo changelog` — use shared `CheckFileExists` and `RemoveFileInsensitive` utilities for case-insensitive file detection and safe overwrite

@@ -139,6 +139,16 @@ forge git undo          # soft reset, buffer last commit message
 forge git undo --hard   # destructive reset, prompt if dirty worktree
 ```
 
+#### `forge git restore`
+Recovers a deleted or modified file from git history using fuzzy path matching. Deletion commits are filtered from the picker. Restored file is left unstaged for review.
+```bash
+forge git restore                   # fuzzy match, interactive commit picker
+forge git restore  --latest         # skip menu, restore from most recent non-deletion commit
+forge git restore  --commit         # pin to a specific commit
+forge git restore  --dry-run        # preview match and target commit, no changes
+forge git restore  --force          # overwrite dirty or ignored files without prompt
+```
+
 ---
 
 ## Installation
