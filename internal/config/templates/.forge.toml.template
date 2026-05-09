@@ -4,6 +4,56 @@
 # If value is empty, forge falls back to default value
 
 
+# ——— ENV ——————————————————————————————————————————————————————————————————————
+[env]
+# Default .env file path, relative to project root.
+default_file = ".env"
+
+# Default .env.example file path, relative to project root.
+example_file = ".env.example"
+
+
+# ——— ENV ADD ——————————————————————————————————————————————————————————————————
+[env.add]
+# Prepend "export " to every key written by forge env add.
+# Should match enforce_export in [env.check] to avoid self-inflicted warnings.
+export_prefix = false
+
+# Line ending style for appended keys.
+# Values: "lf" | "crlf"
+line_ending = "lf"
+
+
+# ——— ENV CHECK ————————————————————————————————————————————————————————————————
+[env.check]
+
+# Minimum severity level to report. "warn" reports everything, "error" reports errors only.
+# Values: "warn" | "error"
+check_level = "warn"
+
+# Keys to skip entirely during all checks, including conformity diff.
+# Supports wildcard prefix matching — e.g. "DB_*" skips all DB_ keys.
+ignore_keys = []
+
+# Suppress specific check categories globally.
+# Valid codes: "empty_value", "trailing_whitespace", "consecutive_blank_lines",
+#              "commented_key_has_value", "example_conformity", "example_has_value"
+ignore_codes = []
+
+# Keys that must exist in .env — Forge errors if any are missing.
+required_keys = []
+
+# Lowercase keys to allow without warning — e.g. ["version", "env"].
+allowed_lowercase = []
+
+# Maximum number of consecutive blank lines allowed.
+# Set to 0 to disable.
+max_consecutive_blanks = 1
+
+# Warn if lines do not use the "export " prefix.
+enforce_export = false
+
+
 # ——— GIT CLEAN ———————————————————————————————————————————————————————————————
 [git.clean]
 # Days since last commit before a branch is considered dusty.
