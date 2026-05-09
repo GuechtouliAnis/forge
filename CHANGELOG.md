@@ -14,6 +14,13 @@
 - `cmd/root` — Removed hardcoded `--username` / `-u` persistent flag
 - `cmd/root` — Error handling centralized in `Execute()` — commands return errors bare instead of printing to stderr themselves
 - `repo` — Optimized `RemoveFileInsensitive` with an initial `os.Remove` for case sensitive direct remove
+- `forge env add` — Replaced `strings.NewReader(string(data))` with `bytes.NewReader(data)` — avoids redundant `[]byte` to `string` conversion
+- `forge env add` — Replaced line-by-line `strings.Index` with `strings.Cut` for cleaner key parsing
+- `forge env add` — Collapsed triple preset iteration into a single pass using a `toWrite` entry slice
+- `forge env add` — Buffered file writes with `bufio.NewWriter` — reduces syscalls per appended line
+- `forge env add` — Replaced `fmt.Scanln` based parsing with `bufio.NewScanner` for line reading
+- `forge env add` — All errors now wrapped with `fmt.Errorf("[env add]: %w", err)`
+- `forge env add` — Error message for missing preset flag aligned with codebase convention
 
 ## Fixed
 - **The "Duplicate Config" Bug**: Fixed an issue on Linux where overwriting a case-mismatched file (e.g., `.FORGE.toml`) would create a second file (`.forge.toml`) instead of replacing the original.

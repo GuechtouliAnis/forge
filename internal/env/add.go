@@ -1,6 +1,8 @@
 package env
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -13,7 +15,7 @@ func AddEnv(path string, selected []string) error {
 	// read existing keys
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return err
+		return fmt.Errorf("[env add]: %w", err)
 	}
 
 	// build preset key set for O(1) lookup
@@ -27,36 +29,38 @@ func AddEnv(path string, selected []string) error {
 	// check for existing keys in .env file
 	existing := make(map[string]bool)
 	// process .env line by line
-	for _, line := range strings.Split(string(data), "\n") {
-		// trim line from prefix "export " to get the key value couple only
-		line = strings.TrimPrefix(line, "export ")
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	for scanner.Scan() {
+		line := strings.TrimPrefix(scanner.Text(), "export ")
 		// if is empty line, skip
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
-		// look for the first appearance of equal sign, which should be the splitter of key=value
-		eqIdx := strings.Index(line, "=")
 		// if line is comment
 		if strings.HasPrefix(strings.TrimSpace(line), "#") {
 			// if line is comment BUT has equal sign and a key
 			// >> # KEY=    (flagged as a warning)
-			if eqIdx > 0 {
-				key := strings.TrimSpace(line[1:eqIdx])
-				if presetKeys[key] {
-					fmt.Printf("warning: %s exists but is commented out\n", key)
+			if key, _, found := strings.Cut(line[1:], "="); found {
+				if presetKeys[strings.TrimSpace(key)] {
+					fmt.Printf("warning: %s exists but is commented out\n", strings.TrimSpace(key))
 				}
 			}
 			continue
 		}
 		// keeping track of existing keys to avoid duplicates
-		if eqIdx > 0 {
-			existing[strings.TrimSpace(line[:eqIdx])] = true
+		if key, _, found := strings.Cut(line, "="); found {
+			existing[strings.TrimSpace(key)] = true
 		}
 	}
 
-	// count skipped vs total
-	skipped := 0
-	total := 0
+	type entry struct {
+		preset string
+		key    string
+		value  string
+	}
+
+	var toWrite []entry
+	skipped, total := 0, 0
 
 	// loop through the selected lists of predefined values (eg. : values of --db)
 	for _, preset := range selected {
@@ -65,42 +69,43 @@ func AddEnv(path string, selected []string) error {
 			if existing[key] {
 				fmt.Printf("warning: %s already exists, skipping\n", key)
 				skipped++
+				continue
 			}
+			value := `""`
+			if v, ok := hostVars[key]; ok {
+				value = v
+			}
+			toWrite = append(toWrite, entry{preset, key, value})
 		}
 	}
 
 	if skipped == total {
-		return fmt.Errorf("ERROR: all predefined vars already exist in %s", path)
+		return fmt.Errorf("[env add]: all predefined vars already exist in %s", path)
 	}
 
 	// append to file
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
-		return err
+		return fmt.Errorf("[env add]: %w", err)
 	}
 	defer f.Close()
 
+	w := bufio.NewWriter(f)
+	defer w.Flush()
+
 	// ensure starting on a new line
 	if len(data) > 0 && data[len(data)-1] != '\n' {
-		fmt.Fprintln(f)
+		fmt.Fprintln(w)
 	}
 
 	// add a comment above keys added by forge
-	for _, preset := range selected {
-		fmt.Fprintf(f, "# %s - added by forge env add\n", preset)
-		for _, key := range presets[preset] {
-			// skip existing keys
-			if existing[key] {
-				continue
-			}
-			// default value of added keys to be ""
-			value := "\"\""
-			if v, ok := hostVars[key]; ok {
-				value = v
-			}
-			// actually print the key into the file
-			fmt.Fprintln(f, key+"="+value)
+	currentPreset := ""
+	for _, e := range toWrite {
+		if e.preset != currentPreset {
+			fmt.Fprintf(w, "# %s - added by forge env add\n", e.preset)
+			currentPreset = e.preset
 		}
+		fmt.Fprintln(w, e.key+"="+e.value)
 	}
 
 	return nil
