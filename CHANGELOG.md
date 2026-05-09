@@ -5,6 +5,7 @@
 ### Added
 - `forge config new` — Path existence and directory validation
 - `forge config new` — Soft `.git/` reminder printed after successful creation when no `.git/` is detected at target path
+- `forge repo` — Added `ResolveCaseInsensitive` to perform case insensitive search for a file and return the actual appearance name
 
 ### Changed
 - `forge config new` — Replaced `fmt.Scanln` with `bufio.NewReader` for overwrite prompt input — prevents silent failure on empty input or redirected stdin
@@ -12,6 +13,10 @@
 - `forge config new` — Removed redundant `RemoveFileInsensitive` call before overwrite — `os.WriteFile` truncates by default
 - `cmd/root` — Removed hardcoded `--username` / `-u` persistent flag
 - `cmd/root` — Error handling centralized in `Execute()` — commands return errors bare instead of printing to stderr themselves
+- `repo` — Optimized `RemoveFileInsensitive` with an initial `os.Remove` for case sensitive direct remove
+
+## Fixed
+- **The "Duplicate Config" Bug**: Fixed an issue on Linux where overwriting a case-mismatched file (e.g., `.FORGE.toml`) would create a second file (`.forge.toml`) instead of replacing the original.
 
 ## [1.4.0] - 2026-05-09
 

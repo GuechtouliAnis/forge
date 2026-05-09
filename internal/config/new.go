@@ -52,6 +52,11 @@ func CreateForgeToml(path string) error {
 			fmt.Println("[config new]: Aborted.")
 			return nil
 		}
+
+		// remove existing file to prevent duplicating the file with different case
+		if err := repo.RemoveFileInsensitive(path, ".forge.toml"); err != nil {
+			return fmt.Errorf("[config new]: clean-up failed: %w", err)
+		}
 	}
 
 	dest := filepath.Join(path, ".forge.toml")
