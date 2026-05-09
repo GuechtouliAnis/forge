@@ -3,6 +3,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	cmdconfig "github.com/GuechtouliAnis/forge/cmd/config"
@@ -18,19 +19,16 @@ var rootCmd = &cobra.Command{
 	Use:           "forge",
 	Short:         "Developer CLI for scaffolding repos and managing env files",
 	Long:          "Forge — scaffold repositories, generate licenses, READMEs, and manage environment files without the boilerplate.",
-	Version:       "1.3.0",
+	Version:       "1.4.0",
 	SilenceErrors: true,
 	SilenceUsage:  true,
 }
-
-var githubUsername string
 
 // username is a persistent flag available to all subcommands
 // used for Go module paths in the format github.com/username/project
 // falls back to git config user.name if not provided
 func init() {
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
-	rootCmd.PersistentFlags().StringVarP(&githubUsername, "username", "u", "", "Your GitHub username")
 
 	// register all command groups
 	cmdconfig.Register(rootCmd)
@@ -42,6 +40,7 @@ func init() {
 // Execute is called by main.go to start the CLI.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }

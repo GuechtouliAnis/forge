@@ -2,7 +2,18 @@
 
 ## [Unreleased]
 
-## [1.4.0]
+### Added
+- `forge config new` — Path existence and directory validation
+- `forge config new` — Soft `.git/` reminder printed after successful creation when no `.git/` is detected at target path
+
+### Changed
+- `forge config new` — Replaced `fmt.Scanln` with `bufio.NewReader` for overwrite prompt input — prevents silent failure on empty input or redirected stdin
+- `forge config new` — All errors now wrapped with `fmt.Errorf("[config new]: %w", err)` instead of being returned bare
+- `forge config new` — Removed redundant `RemoveFileInsensitive` call before overwrite — `os.WriteFile` truncates by default
+- `cmd/root` — Removed hardcoded `--username` / `-u` persistent flag
+- `cmd/root` — Error handling centralized in `Execute()` — commands return errors bare instead of printing to stderr themselves
+
+## [1.4.0] - 2026-05-09
 
 ### Added
 - `forge repo changelog [path]` — generate a CHANGELOG.md scaffold in the current or specified directory
