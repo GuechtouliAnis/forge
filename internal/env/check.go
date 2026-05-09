@@ -1,8 +1,11 @@
 package env
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 )
@@ -18,6 +21,7 @@ type CheckIssue struct {
 	Line     int
 	Severity int // LevelWarn or LevelError
 	Message  string
+	File     string
 }
 
 // CheckEnv validates a .env file and returns a list of issues.
@@ -25,12 +29,22 @@ type CheckIssue struct {
 func CheckEnv(path string, level int) ([]CheckIssue, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("[env check]: %w", err)
 	}
 
-	// split .env file to lines
-	lines := strings.Split(string(data), "\n")
-	// declare an empty map to detect seen lines
+	// kick off .env.example read concurrently
+	type exampleResult struct {
+		keys map[string]ExampleKey
+		err  error
+	}
+
+	exampleCh := make(chan exampleResult, 1)
+	go func() {
+		examplePath := filepath.Join(filepath.Dir(path), ".env.example")
+		keys, err := parseKeysFromExample(examplePath)
+		exampleCh <- exampleResult{keys, err}
+	}()
+
 	seen := make(map[string]bool)
 	var issues []CheckIssue
 
@@ -40,18 +54,22 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 		}
 	}
 
-	for i, raw := range lines {
-		lineNum := i + 1
+	var prevLine string
+	lineNum := 0
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	for scanner.Scan() {
+		raw := scanner.Text()
+		lineNum++
 
-		// warn: trailing whitespace
 		if raw != strings.TrimRight(raw, " \t") {
 			add(lineNum, LevelWarn, "trailing whitespace")
 		}
 
 		// warn: two consecutive blank lines
-		if i > 0 && strings.TrimSpace(raw) == "" && strings.TrimSpace(lines[i-1]) == "" {
+		if lineNum > 1 && strings.TrimSpace(raw) == "" && strings.TrimSpace(prevLine) == "" {
 			add(lineNum, LevelWarn, "consecutive blank lines")
 		}
+		prevLine = raw
 
 		line := strings.TrimPrefix(raw, "export ")
 
@@ -59,18 +77,17 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 		if strings.HasPrefix(strings.TrimSpace(line), "#") {
 			// strip line from comment sign
 			stripped := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "#"))
-			// check if line has equal sign
-			eqIdx := strings.Index(stripped, "=")
-			if eqIdx > 0 {
-				key := strings.TrimSpace(stripped[:eqIdx])
-				value := strings.TrimSpace(stripped[eqIdx+1:])
-				// strip inline comment from value
-				hashIdx := strings.Index(value, "#")
-				if hashIdx >= 0 {
+			if key, value, found := strings.Cut(stripped, "="); found {
+				if key == "" {
+					continue
+				}
+				key = strings.TrimSpace(key)
+				value = strings.TrimSpace(value)
+				if hashIdx := strings.Index(value, "#"); hashIdx >= 0 {
 					value = strings.TrimSpace(value[:hashIdx])
 				}
 				if value != "" {
-					add(lineNum, LevelWarn, fmt.Sprintf("commented key: '%q' has value.", key))
+					add(lineNum, LevelWarn, fmt.Sprintf("commented key %q has a value", key))
 				}
 			}
 			continue
@@ -81,16 +98,11 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 			continue
 		}
 
-		eqIdx := strings.Index(line, "=")
-
-		// error: malformed line, no = found (KEY alone)
-		if eqIdx < 0 {
+		key, value, found := strings.Cut(line, "=")
+		if !found {
 			add(lineNum, LevelError, fmt.Sprintf("malformed line, no '=' found: %q", strings.TrimSpace(line)))
 			continue
 		}
-
-		key := line[:eqIdx]
-		value := line[eqIdx+1:]
 
 		// error: key contains space (API = KEY)
 		if strings.ContainsAny(key, " \t") {
@@ -109,8 +121,12 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 		switch ValidateKey(trimmedKey) {
 		case KeyStartsWithDigit:
 			add(lineNum, LevelError, fmt.Sprintf("key starts with digit: %q", trimmedKey))
+			// don't add to seen
+			continue
 		case KeyInvalidChars:
 			add(lineNum, LevelError, fmt.Sprintf("key contains invalid characters: %q", trimmedKey))
+			// don't add to seen
+			continue
 		case KeyIsLowercase:
 			add(lineNum, LevelWarn, fmt.Sprintf("key contains lowercase: %q", trimmedKey))
 		}
@@ -123,8 +139,7 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 
 		// warn: empty value (KEY=)
 		checkEmpty := strings.TrimSpace(value)
-		hashIdx := strings.Index(checkEmpty, "#")
-		if hashIdx >= 0 {
+		if hashIdx := strings.Index(checkEmpty, "#"); hashIdx >= 0 {
 			checkEmpty = strings.TrimSpace(checkEmpty[:hashIdx])
 		}
 		if checkEmpty == "" {
@@ -136,19 +151,13 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 		trimmedVal := strings.TrimSpace(value)
 		if len(trimmedVal) > 0 && (trimmedVal[0] == '"' || trimmedVal[0] == '\'') {
 			quote := trimmedVal[0]
-			closeIdx := strings.IndexByte(trimmedVal[1:], quote)
-			if closeIdx < 0 {
+			if strings.IndexByte(trimmedVal[1:], quote) < 0 {
 				add(lineNum, LevelError, fmt.Sprintf("unclosed quote for key: %q", trimmedKey))
 				continue
 			}
-		}
-
-		// error: unquoted value with spaces (KEY=hello world)
-		if !strings.HasPrefix(trimmedVal, "\"") && !strings.HasPrefix(trimmedVal, "'") {
-			// strip inline comment first
-			hashIdx := strings.Index(trimmedVal, "#")
+		} else {
 			checkVal := trimmedVal
-			if hashIdx >= 0 {
+			if hashIdx := strings.Index(trimmedVal, "#"); hashIdx >= 0 {
 				checkVal = strings.TrimSpace(trimmedVal[:hashIdx])
 			}
 			if strings.ContainsAny(checkVal, " \t") {
@@ -157,26 +166,35 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 		}
 	}
 
-	// warn: ending blank line
+	// trailing blank line — check last two scanned lines
 	trimmed := strings.TrimRight(string(data), "\n")
-	if string(data) != trimmed && strings.TrimSpace(lines[len(lines)-2]) == "" {
-		add(len(lines)-1, LevelWarn, "file ends with blank line")
+	if string(data) != trimmed && strings.TrimSpace(prevLine) == "" {
+		add(lineNum, LevelWarn, "file ends with blank line")
 	}
 
-	// warn: conformity with .env.example (skip silently if not found)
-	exampleKeys, err := parseKeysFromExample(".env.example")
-	if err == nil {
-		for k := range seen {
-			if !exampleKeys[k] {
-				add(0, LevelWarn, fmt.Sprintf("key %q exists in .env but not in .env.example", k))
+	// conformity check — drain goroutine result
+	if result := <-exampleCh; result.err == nil {
+		examplePath := filepath.Join(filepath.Dir(path), ".env.example")
+		for k, meta := range result.keys {
+			if meta.HasValue {
+				issues = append(issues, CheckIssue{
+					Line:     0,
+					Severity: LevelWarn,
+					File:     examplePath,
+					Message:  fmt.Sprintf("key %q has a value set — example files should use empty or placeholder values", k),
+				})
 			}
-		}
-		for k := range exampleKeys {
 			if !seen[k] {
 				add(0, LevelWarn, fmt.Sprintf("key %q exists in .env.example but not in .env", k))
 			}
 		}
+		for k := range seen {
+			if _, exists := result.keys[k]; !exists {
+				add(0, LevelWarn, fmt.Sprintf("key %q exists in .env but not in .env.example", k))
+			}
+		}
 	}
+
 	sort.Slice(issues, func(i, j int) bool {
 		if issues[i].Line == 0 {
 			return false
@@ -190,24 +208,30 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 	return issues, nil
 }
 
-// parseKeysFromExample reads a .env.example file and returns a set of keys.
-func parseKeysFromExample(path string) (map[string]bool, error) {
+type ExampleKey struct {
+	HasValue bool
+}
+
+// parseKeysFromExample reads a .env.example file and returns a map of keys.
+// HasValue is true if a key has an actual value set — which it shouldn't in an example file.
+func parseKeysFromExample(path string) (map[string]ExampleKey, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("[env check]: %w", err)
 	}
-	keys := make(map[string]bool)
-	for _, line := range strings.Split(string(data), "\n") {
-		line = strings.TrimPrefix(line, "export ")
-		if strings.TrimSpace(line) == "" {
+	keys := make(map[string]ExampleKey)
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	for scanner.Scan() {
+		line := strings.TrimPrefix(scanner.Text(), "export ")
+		if strings.TrimSpace(line) == "" || strings.HasPrefix(strings.TrimSpace(line), "#") {
 			continue
 		}
-		eqIdx := strings.Index(line, "=")
-		if strings.HasPrefix(strings.TrimSpace(line), "#") {
-			continue
-		}
-		if eqIdx > 0 {
-			keys[strings.TrimSpace(line[:eqIdx])] = true
+		if key, value, found := strings.Cut(line, "="); found {
+			key = strings.TrimSpace(key)
+			if h := strings.Index(value, "#"); h >= 0 {
+				value = strings.TrimSpace(value[:h])
+			}
+			keys[key] = ExampleKey{HasValue: strings.TrimSpace(value) != ""}
 		}
 	}
 	return keys, nil
@@ -219,8 +243,12 @@ func FormatIssue(path string, issue CheckIssue) string {
 	if issue.Severity == LevelError {
 		prefix = "[error]"
 	}
-	if issue.Line == 0 {
-		return fmt.Sprintf("%s - %s - %s", prefix, path, issue.Message)
+	file := path
+	if issue.File != "" {
+		file = issue.File
 	}
-	return fmt.Sprintf("%s - %s:%d - %s", prefix, path, issue.Line, issue.Message)
+	if issue.Line == 0 {
+		return fmt.Sprintf("%s - %s - %s", prefix, file, issue.Message)
+	}
+	return fmt.Sprintf("%s - %s:%d - %s", prefix, file, issue.Line, issue.Message)
 }

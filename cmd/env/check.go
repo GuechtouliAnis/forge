@@ -2,6 +2,7 @@ package cmdenv
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/GuechtouliAnis/forge/internal/env"
 	"github.com/spf13/cobra"
@@ -29,11 +30,11 @@ var envCheckCmd = &cobra.Command{
 
 		issues, err := env.CheckEnv(path, level)
 		if err != nil {
-			return err
+			return fmt.Errorf("[env check]: %w", err)
 		}
 
 		for _, issue := range issues {
-			fmt.Println(env.FormatIssue(path, issue))
+			fmt.Fprintln(os.Stderr, env.FormatIssue(path, issue))
 		}
 
 		if len(issues) == 0 {
