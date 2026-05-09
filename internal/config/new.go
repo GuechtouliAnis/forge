@@ -31,7 +31,8 @@ func CreateForgeToml(path string) error {
 		fmt.Print("A .forge.toml already exists. Overwrite? [y/N]: ")
 		var input string
 		fmt.Scanln(&input)
-		if strings.ToLower(strings.TrimSpace(input)) != "y" {
+		resp := strings.ToLower(strings.TrimSpace(input)) != "y" && strings.ToLower(strings.TrimSpace(input)) != "yes"
+		if resp {
 			fmt.Println("Aborted.")
 			return nil // early return
 		}
