@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.4.0]
+
 ### Added
 - `forge repo changelog [path]` — generate a CHANGELOG.md scaffold in the current or specified directory
 - `forge repo changelog` — prompts before overwriting existing changelog, handles any casing variant (e.g. `ChangElog.Md`)
