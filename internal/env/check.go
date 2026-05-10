@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/GuechtouliAnis/forge/internal/config"
 )
 
 // Check severity levels.
@@ -26,7 +28,7 @@ type CheckIssue struct {
 
 // CheckEnv validates a .env file and returns a list of issues.
 // It checks for key naming rules, duplicate keys, malformed lines, and more.
-func CheckEnv(path string, level int) ([]CheckIssue, error) {
+func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) ([]CheckIssue, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("[env check]: %w", err)
@@ -40,7 +42,7 @@ func CheckEnv(path string, level int) ([]CheckIssue, error) {
 
 	exampleCh := make(chan exampleResult, 1)
 	go func() {
-		examplePath := filepath.Join(filepath.Dir(path), ".env.example")
+		examplePath := filepath.Join(filepath.Dir(path), examplePath)
 		keys, err := parseKeysFromExample(examplePath)
 		exampleCh <- exampleResult{keys, err}
 	}()

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/GuechtouliAnis/forge/internal/config"
 	"github.com/GuechtouliAnis/forge/internal/env"
 	"github.com/spf13/cobra"
 )
@@ -18,17 +19,30 @@ var envCheckCmd = &cobra.Command{
 	Short: "Validate a .env file against key naming rules",
 	Args:  cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		path := ".env"
+		cwd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("[env check]: could not determine working directory: %w", err)
+		}
+
+		cfg, err := config.Load(cwd)
+		if err != nil {
+			return fmt.Errorf("[env check]: could not load .forge.toml: %w", err)
+		}
+
+		// Define default .env file name
+		path := cfg.Env.DefaultFile
+		examplePath := cfg.Env.ExampleFile
+
 		if len(args) > 0 {
 			path = args[0]
 		}
 
 		level := env.LevelWarn
-		if envCheckError {
+		if cfg.Env.Check.CheckLevel == "error" || envCheckError {
 			level = env.LevelError
 		}
 
-		issues, err := env.CheckEnv(path, level)
+		issues, err := env.CheckEnv(path, examplePath, level, cfg.Env.Check)
 		if err != nil {
 			return fmt.Errorf("[env check]: %w", err)
 		}
@@ -38,7 +52,7 @@ var envCheckCmd = &cobra.Command{
 		}
 
 		if len(issues) == 0 {
-			fmt.Println("no issues found")
+			fmt.Println("[env check]: no issues found")
 		}
 
 		return nil
