@@ -19,7 +19,7 @@ var rootCmd = &cobra.Command{
 	Use:           "forge",
 	Short:         "Developer CLI for scaffolding repos and managing env files",
 	Long:          "Forge — scaffold repositories, generate licenses, READMEs, and manage environment files without the boilerplate.",
-	Version:       "1.4.0",
+	Version:       "1.5.0",
 	SilenceErrors: true,
 	SilenceUsage:  true,
 }
