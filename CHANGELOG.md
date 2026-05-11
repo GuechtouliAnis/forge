@@ -48,7 +48,7 @@
 - `forge env check` — `commentedHasValue` message now includes the key name — improves diagnostic precision
 - `forge env check` — `validateValue` messages now reference key name instead of value
 
-## Fixed
+### Fixed
 - **The "Duplicate Config" Bug**: Fixed an issue on Linux where overwriting a case-mismatched file (e.g., `.FORGE.toml`) would create a second file (`.forge.toml`) instead of replacing the original.
 - `forge env check` — Separator comment lines (e.g. `# ===`) no longer trigger false `commented key "" has a value` warnings
 - `forge env check` — Invalid keys no longer appear in `.env.example` conformity warnings
