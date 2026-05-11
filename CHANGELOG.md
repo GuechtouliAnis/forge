@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-05-11
+
 ### Added
 - `forge config new` — Path existence and directory validation
 - `forge config new` — Soft `.git/` reminder printed after successful creation when no `.git/` is detected at target path
@@ -9,6 +11,16 @@
 - `forge env check` — `.env.example` conformity now detects keys with values set — warns when example file contains non-empty values
 - `forge env check` — `ExampleKey` struct introduced to carry `HasValue` metadata from `parseKeysFromExample`
 - `forge env check` — `CheckIssue` now carries a `File` field — allows issues to reference `.env.example` path instead of always printing `.env`
+- `forge env check` — `shouldAdd` helper introduced — centralizes severity level filtering and ignore code checks at extracted rule call sites
+- `forge env check` — `emptyKey`, `emptyValue`, `commentedHasValue`, `validateValue` extracted as standalone rule functions — each returns `*CheckIssue` for testability
+- `forge env` — `[env]` section added to `.forge.toml` — `default_file` and `example_file` configurable at project level
+- `forge env add` — `[env.add]` config block introduced — `export_prefix` and `line_ending` fields
+- `forge env check` — `[env.check]` config block introduced — `check_level`, `ignore_keys`, `ignore_codes`, `required_keys`, `allowed_lowercase`, `max_consecutive_blanks`, `enforce_export` fields
+- `forge env check` — `ignore_keys` supports wildcard prefix matching — e.g. `DB_*` skips all keys with that prefix
+- `forge env check` — `required_keys` — Forge errors if any listed key is absent from `.env`
+- `forge env check` — `allowed_lowercase` — exempts specific lowercase keys from the lowercase warning
+- `forge env check` — `max_consecutive_blanks` — configurable blank line tolerance, set to `0` to disable
+- `config` — `EnvConfig`, `EnvAdd`, `EnvCheck` structs introduced with sensible defaults
 
 ### Changed
 - `forge config new` — Replaced `fmt.Scanln` with `bufio.NewReader` for overwrite prompt input — prevents silent failure on empty input or redirected stdin
@@ -32,11 +44,19 @@
 - `forge env check` — Issues now printed to `os.Stderr`, success message remains on `os.Stdout`
 - `forge env check` — Empty key guard added to commented line parser — prevents false positives on separator lines containing `=`
 - `forge env check` — Invalid keys (`KeyStartsWithDigit`, `KeyInvalidChars`) excluded from `seen` map — prevents noise in conformity diff
+- `forge env check` — `validateValue` consolidates unclosed quote and unquoted spaces checks — both share the same quoted/unquoted branch logic
+- `forge env check` — `commentedHasValue` message now includes the key name — improves diagnostic precision
+- `forge env check` — `validateValue` messages now reference key name instead of value
 
 ## Fixed
 - **The "Duplicate Config" Bug**: Fixed an issue on Linux where overwriting a case-mismatched file (e.g., `.FORGE.toml`) would create a second file (`.forge.toml`) instead of replacing the original.
 - `forge env check` — Separator comment lines (e.g. `# ===`) no longer trigger false `commented key "" has a value` warnings
 - `forge env check` — Invalid keys no longer appear in `.env.example` conformity warnings
+- `forge env check` — Extracted rule functions now respect `--level` flag — previously bypassed `add()` severity gate and always appended regardless of level
+- `forge env check` — Spurious `continue` removed from `emptyValue` call site — previously skipped `validateValue` when `empty_value` was ignored or filtered by level
+
+### Removed
+- `forge env` — Removed `add_test`, `check_test`, `init_test`, `example_test` — test coverage to be rewritten against the new config-aware rule functions
 
 ## [1.4.0] - 2026-05-09
 
