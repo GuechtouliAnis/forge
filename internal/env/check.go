@@ -34,17 +34,10 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		return nil, fmt.Errorf("[env check]: %w", err)
 	}
 
-	// kick off .env.example read concurrently
-	type exampleResult struct {
-		keys map[string]ExampleKey
-		err  error
-	}
-
-	exampleCh := make(chan exampleResult, 1)
+	exampleCh := make(chan ExampleResult, 1)
 	go func() {
-		examplePath := filepath.Join(filepath.Dir(path), examplePath)
-		keys, err := parseKeysFromExample(examplePath)
-		exampleCh <- exampleResult{keys, err}
+		keys, err := ParseKeysFromExample(examplePath)
+		exampleCh <- ExampleResult{keys, err}
 	}()
 
 	seen := make(map[string]bool)
@@ -63,8 +56,9 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		raw := scanner.Text()
 		lineNum++
 
-		if raw != strings.TrimRight(raw, " \t") {
-			add(lineNum, LevelWarn, "trailing whitespace")
+		// [WARN] - trailing_whitespace
+		if issue := CheckTrailingWhitespace(raw, lineNum); ShouldAdd(issue, level, cfg, "trailing_whitespace") {
+			issues = append(issues, *issue)
 		}
 
 		// warn: two consecutive blank lines
@@ -79,18 +73,9 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		if strings.HasPrefix(strings.TrimSpace(line), "#") {
 			// strip line from comment sign
 			stripped := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "#"))
-			if key, value, found := strings.Cut(stripped, "="); found {
-				if key == "" {
-					continue
-				}
-				key = strings.TrimSpace(key)
-				value = strings.TrimSpace(value)
-				if hashIdx := strings.Index(value, "#"); hashIdx >= 0 {
-					value = strings.TrimSpace(value[:hashIdx])
-				}
-				if value != "" {
-					add(lineNum, LevelWarn, fmt.Sprintf("commented key %q has a value", key))
-				}
+			// [WARN] - commented_key_has_value
+			if issue := CommentedHasValue(stripped, lineNum); ShouldAdd(issue, level, cfg, "commented_key_has_value") {
+				issues = append(issues, *issue)
 			}
 			continue
 		}
@@ -108,15 +93,16 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 
 		// error: key contains space (API = KEY)
 		if strings.ContainsAny(key, " \t") {
-			add(lineNum, LevelError, fmt.Sprintf("key contains spaces: %q", key))
+			add(lineNum, LevelError, fmt.Sprintf("key contains spaces: %q", strings.TrimSpace(key)))
 			continue
 		}
 
 		trimmedKey := strings.TrimSpace(key)
 
-		// guard: key is empty (line starts with '=')
-		if trimmedKey == "" {
-			add(lineNum, LevelError, "malformed line, empty key")
+		// [ERROR] - empty key (line starts with '=')
+		// Errors appended directly without a level check since errors should not be ignored
+		if issue := EmptyKey(trimmedKey, lineNum); issue != nil {
+			issues = append(issues, *issue)
 			continue
 		}
 
@@ -139,32 +125,16 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		}
 		seen[trimmedKey] = true
 
-		// warn: empty value (KEY=)
-		checkEmpty := strings.TrimSpace(value)
-		if hashIdx := strings.Index(checkEmpty, "#"); hashIdx >= 0 {
-			checkEmpty = strings.TrimSpace(checkEmpty[:hashIdx])
-		}
-		if checkEmpty == "" {
-			add(lineNum, LevelWarn, fmt.Sprintf("empty value for key: %q", trimmedKey))
-			continue
+		// [WARN] - empty_value (KEY=)
+		if issue := EmptyValue(key, value, lineNum); ShouldAdd(issue, level, cfg, "empty_value") {
+			issues = append(issues, *issue)
 		}
 
-		// error: unclosed quotation
+		// [ERROR] - unclosed quotation
+		// Errors appended directly without a level check since errors should not be ignored
 		trimmedVal := strings.TrimSpace(value)
-		if len(trimmedVal) > 0 && (trimmedVal[0] == '"' || trimmedVal[0] == '\'') {
-			quote := trimmedVal[0]
-			if strings.IndexByte(trimmedVal[1:], quote) < 0 {
-				add(lineNum, LevelError, fmt.Sprintf("unclosed quote for key: %q", trimmedKey))
-				continue
-			}
-		} else {
-			checkVal := trimmedVal
-			if hashIdx := strings.Index(trimmedVal, "#"); hashIdx >= 0 {
-				checkVal = strings.TrimSpace(trimmedVal[:hashIdx])
-			}
-			if strings.ContainsAny(checkVal, " \t") {
-				add(lineNum, LevelError, fmt.Sprintf("unquoted value contains spaces for key: %q", trimmedKey))
-			}
+		if issue := ValidateValue(trimmedKey, trimmedVal, lineNum); issue != nil {
+			issues = append(issues, *issue)
 		}
 	}
 
@@ -176,7 +146,7 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 
 	// conformity check — drain goroutine result
 	if result := <-exampleCh; result.err == nil {
-		examplePath := filepath.Join(filepath.Dir(path), ".env.example")
+		examplePath := filepath.Join(filepath.Dir(path), examplePath)
 		for k, meta := range result.keys {
 			if meta.HasValue {
 				issues = append(issues, CheckIssue{
@@ -187,12 +157,12 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 				})
 			}
 			if !seen[k] {
-				add(0, LevelWarn, fmt.Sprintf("key %q exists in .env.example but not in .env", k))
+				add(0, LevelWarn, fmt.Sprintf("key %q exists in %s but not in %s", k, examplePath, path))
 			}
 		}
 		for k := range seen {
 			if _, exists := result.keys[k]; !exists {
-				add(0, LevelWarn, fmt.Sprintf("key %q exists in .env but not in .env.example", k))
+				add(0, LevelWarn, fmt.Sprintf("key %q exists in %s but not in %s", k, path, examplePath))
 			}
 		}
 	}
@@ -208,49 +178,4 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 	})
 
 	return issues, nil
-}
-
-type ExampleKey struct {
-	HasValue bool
-}
-
-// parseKeysFromExample reads a .env.example file and returns a map of keys.
-// HasValue is true if a key has an actual value set — which it shouldn't in an example file.
-func parseKeysFromExample(path string) (map[string]ExampleKey, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("[env check]: %w", err)
-	}
-	keys := make(map[string]ExampleKey)
-	scanner := bufio.NewScanner(bytes.NewReader(data))
-	for scanner.Scan() {
-		line := strings.TrimPrefix(scanner.Text(), "export ")
-		if strings.TrimSpace(line) == "" || strings.HasPrefix(strings.TrimSpace(line), "#") {
-			continue
-		}
-		if key, value, found := strings.Cut(line, "="); found {
-			key = strings.TrimSpace(key)
-			if h := strings.Index(value, "#"); h >= 0 {
-				value = strings.TrimSpace(value[:h])
-			}
-			keys[key] = ExampleKey{HasValue: strings.TrimSpace(value) != ""}
-		}
-	}
-	return keys, nil
-}
-
-// FormatIssue formats a CheckIssue into a human-readable string.
-func FormatIssue(path string, issue CheckIssue) string {
-	prefix := "[warn] "
-	if issue.Severity == LevelError {
-		prefix = "[error]"
-	}
-	file := path
-	if issue.File != "" {
-		file = issue.File
-	}
-	if issue.Line == 0 {
-		return fmt.Sprintf("%s - %s - %s", prefix, file, issue.Message)
-	}
-	return fmt.Sprintf("%s - %s:%d - %s", prefix, file, issue.Line, issue.Message)
 }
