@@ -37,7 +37,8 @@ ignore_keys = []
 
 # Suppress specific check categories globally.
 # Valid codes: "empty_value", "trailing_whitespace", "consecutive_blank_lines",
-#              "commented_key_has_value", "example_conformity", "example_has_value"
+#              "commented_key_has_value", "example_conformity", "example_has_value",
+#              "file_ends_with_blank"
 ignore_codes = ["commented_key_has_value"]
 
 # Keys that must exist in .env — Forge errors if any are missing.
@@ -48,7 +49,7 @@ allowed_lowercase = []
 
 # Maximum number of consecutive blank lines allowed.
 # Set to 0 to disable.
-max_consecutive_blanks = 1
+max_consecutive_blanks = 2
 
 # Warn if lines do not use the "export " prefix.
 enforce_export = false

@@ -52,20 +52,36 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 	var prevLine string
 	lineNum := 0
 	scanner := bufio.NewScanner(bytes.NewReader(data))
+
+	var consLines uint8
+	var consStart int
+
 	for scanner.Scan() {
 		raw := scanner.Text()
 		lineNum++
 
-		// [WARN] - trailing_whitespace
+		// [WARN] - trailing whitespace
 		if issue := CheckTrailingWhitespace(raw, lineNum); ShouldAdd(issue, level, cfg, "trailing_whitespace") {
 			issues = append(issues, *issue)
 		}
 
-		// warn: two consecutive blank lines
-		if lineNum > 1 && strings.TrimSpace(raw) == "" && strings.TrimSpace(prevLine) == "" {
-			add(lineNum, LevelWarn, "consecutive blank lines")
+		// [WARN] - consecutive blank lines
+		if strings.TrimSpace(raw) == "" {
+			consLines++
+			if consLines == 1 {
+				consStart = lineNum
+			}
+			prevLine = raw
+			continue
 		}
-		prevLine = raw
+
+		// non-blank line — flush consecutive blank run if over threshold
+		if cfg.MaxConsBlanks > 0 && consLines > uint8(cfg.MaxConsBlanks) {
+			if issue := ConsecutiveBlanks(consStart, lineNum-1, consLines); ShouldAdd(issue, level, cfg, "consecutive_blank_lines") {
+				issues = append(issues, *issue)
+			}
+		}
+		consLines = 0
 
 		line := strings.TrimPrefix(raw, "export ")
 
@@ -141,7 +157,9 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 	// trailing blank line — check last two scanned lines
 	trimmed := strings.TrimRight(string(data), "\n")
 	if string(data) != trimmed && strings.TrimSpace(prevLine) == "" {
-		add(lineNum, LevelWarn, "file ends with blank line")
+		if issue := FileEndsWithBlank(lineNum); ShouldAdd(issue, level, cfg, "file_ends_with_blank") {
+			issues = append(issues, *issue)
+		}
 	}
 
 	// conformity check — drain goroutine result

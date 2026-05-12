@@ -38,6 +38,7 @@ ignore_keys = []
 # Suppress specific check categories globally.
 # Valid codes: "empty_value", "trailing_whitespace", "consecutive_blank_lines",
 #              "commented_key_has_value", "example_conformity", "example_has_value"
+#              "file_ends_with_blank"
 ignore_codes = []
 
 # Keys that must exist in .env — Forge errors if any are missing.

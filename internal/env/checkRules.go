@@ -72,6 +72,16 @@ func ValidateValue(key string, value string, lineNum int) *CheckIssue {
 	return nil
 }
 
+func ConsecutiveBlanks(start, end int, count uint8) *CheckIssue {
+	return &CheckIssue{Line: start, Severity: LevelWarn,
+		Message: fmt.Sprintf("%d consecutive blank lines (lines %d–%d)", count, start, end),
+	}
+}
+
+func FileEndsWithBlank(lineNum int) *CheckIssue {
+	return &CheckIssue{Line: lineNum, Severity: LevelWarn, Message: "file ends with blank line"}
+}
+
 func IsIgnored(cfg config.EnvCheck, code string) bool {
 	for _, c := range cfg.IgnoreCodes {
 		if c == code {
