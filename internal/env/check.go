@@ -60,12 +60,12 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		raw := scanner.Text()
 		lineNum++
 
-		// [WARN] - trailing whitespace
+		// ? [WARN] - trailing whitespace
 		if issue := CheckTrailingWhitespace(raw, lineNum); ShouldAdd(issue, level, cfg, "trailing_whitespace") {
 			issues = append(issues, *issue)
 		}
 
-		// [WARN] - consecutive blank lines
+		// ? [WARN] - consecutive blank lines
 		if strings.TrimSpace(raw) == "" {
 			consLines++
 			if consLines == 1 {
@@ -89,7 +89,7 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		if strings.HasPrefix(strings.TrimSpace(line), "#") {
 			// strip line from comment sign
 			stripped := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "#"))
-			// [WARN] - commented_key_has_value
+			// ? [WARN] - commented_key_has_value
 			if issue := CommentedHasValue(stripped, lineNum); ShouldAdd(issue, level, cfg, "commented_key_has_value") {
 				issues = append(issues, *issue)
 			}
@@ -102,51 +102,63 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		}
 
 		key, value, found := strings.Cut(line, "=")
-		if !found {
-			add(lineNum, LevelError, fmt.Sprintf("malformed line, no '=' found: %q", strings.TrimSpace(line)))
-			continue
-		}
 
-		// error: key contains space (API = KEY)
-		if strings.ContainsAny(key, " \t") {
-			add(lineNum, LevelError, fmt.Sprintf("key contains spaces: %q", strings.TrimSpace(key)))
+		// ! [ERROR] - malformed line (no equal sign found)
+		if !found {
+			issues = append(issues, *NoEqualSign(line, lineNum))
 			continue
 		}
 
 		trimmedKey := strings.TrimSpace(key)
 
-		// [ERROR] - empty key (line starts with '=')
+		// ! [ERROR] - key contains space (API = KEY) or value has leading whitespace (KEY= value)
+		if strings.ContainsAny(key, " \t") {
+			issues = append(issues, *KeyContainsSpace(key, lineNum))
+			continue
+		}
+		if value != strings.TrimLeft(value, " \t") {
+			issues = append(issues, *ValueLeadingSpace(trimmedKey, lineNum))
+			continue
+		}
+
+		// ! [ERROR] - empty key (line starts with '=')
 		// Errors appended directly without a level check since errors should not be ignored
 		if issue := EmptyKey(trimmedKey, lineNum); issue != nil {
 			issues = append(issues, *issue)
 			continue
 		}
 
+		// ! [ERROR] - validate key
 		switch ValidateKey(trimmedKey) {
 		case KeyStartsWithDigit:
-			add(lineNum, LevelError, fmt.Sprintf("key starts with digit: %q", trimmedKey))
-			// don't add to seen
+			issues = append(issues, CheckIssue{Line: lineNum, Severity: LevelError,
+				Message: fmt.Sprintf("key starts with digit: %q", trimmedKey)})
 			continue
 		case KeyInvalidChars:
-			add(lineNum, LevelError, fmt.Sprintf("key contains invalid characters: %q", trimmedKey))
-			// don't add to seen
+			issues = append(issues, CheckIssue{Line: lineNum, Severity: LevelError,
+				Message: fmt.Sprintf("key contains invalid characters: %q", trimmedKey)})
 			continue
 		case KeyIsLowercase:
-			add(lineNum, LevelWarn, fmt.Sprintf("key contains lowercase: %q", trimmedKey))
+			// ? [WARN] - lowercase_key
+			issue := LowercaseKey(trimmedKey, lineNum, cfg.AllowedLowercase)
+			if ShouldAdd(issue, level, cfg, "lowercase_key") {
+				issues = append(issues, *issue)
+			}
 		}
 
-		// error: duplicate key
+		// ! [ERROR] - duplicate key
 		if seen[trimmedKey] {
-			add(lineNum, LevelError, fmt.Sprintf("duplicate key: %q", trimmedKey))
+			// add(lineNum, LevelError, fmt.Sprintf("duplicate key: %q", trimmedKey))
+			issues = append(issues, *DuplicateKey(trimmedKey, lineNum))
 		}
 		seen[trimmedKey] = true
 
-		// [WARN] - empty_value (KEY=)
+		// ? [WARN] - empty_value (KEY=)
 		if issue := EmptyValue(key, value, lineNum); ShouldAdd(issue, level, cfg, "empty_value") {
 			issues = append(issues, *issue)
 		}
 
-		// [ERROR] - unclosed quotation
+		// ! [ERROR] - unclosed quotation
 		// Errors appended directly without a level check since errors should not be ignored
 		trimmedVal := strings.TrimSpace(value)
 		if issue := ValidateValue(trimmedKey, trimmedVal, lineNum); issue != nil {

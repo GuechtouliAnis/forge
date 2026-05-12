@@ -9,7 +9,8 @@ import (
 
 func CheckTrailingWhitespace(line string, lineNum int) *CheckIssue {
 	if line != strings.TrimRight(line, " \t") {
-		return &CheckIssue{Line: lineNum, Severity: LevelWarn, Message: "trailing whitespace"}
+		return &CheckIssue{Line: lineNum, Severity: LevelWarn,
+			Message: "trailing whitespace"}
 	}
 	return nil
 }
@@ -72,6 +73,7 @@ func ValidateValue(key string, value string, lineNum int) *CheckIssue {
 	return nil
 }
 
+// TODO - static function cleanup
 func ConsecutiveBlanks(start, end int, count uint8) *CheckIssue {
 	return &CheckIssue{Line: start, Severity: LevelWarn,
 		Message: fmt.Sprintf("%d consecutive blank lines (lines %d–%d)", count, start, end),
@@ -79,7 +81,38 @@ func ConsecutiveBlanks(start, end int, count uint8) *CheckIssue {
 }
 
 func FileEndsWithBlank(lineNum int) *CheckIssue {
-	return &CheckIssue{Line: lineNum, Severity: LevelWarn, Message: "file ends with blank line"}
+	return &CheckIssue{Line: lineNum, Severity: LevelWarn,
+		Message: "file ends with blank line"}
+}
+
+func NoEqualSign(line string, lineNum int) *CheckIssue {
+	return &CheckIssue{Line: lineNum, Severity: LevelError,
+		Message: fmt.Sprintf("malformed line, no '=' found: %q", strings.TrimSpace(line))}
+}
+
+func KeyContainsSpace(key string, lineNum int) *CheckIssue {
+	return &CheckIssue{Line: lineNum, Severity: LevelError,
+		Message: fmt.Sprintf("key contains spaces: %q", strings.TrimSpace(key))}
+}
+
+func ValueLeadingSpace(key string, lineNum int) *CheckIssue {
+	return &CheckIssue{Line: lineNum, Severity: LevelError,
+		Message: fmt.Sprintf("value has leading whitespace for key: %q", key)}
+}
+
+func DuplicateKey(key string, lineNum int) *CheckIssue {
+	return &CheckIssue{Line: lineNum, Severity: LevelError,
+		Message: fmt.Sprintf("duplicate key: %q", key)}
+}
+
+func LowercaseKey(key string, lineNum int, allowed []string) *CheckIssue {
+	for _, k := range allowed {
+		if k == key {
+			return nil
+		}
+	}
+	return &CheckIssue{Line: lineNum, Severity: LevelWarn,
+		Message: fmt.Sprintf("key contains lowercase: %q", key)}
 }
 
 func IsIgnored(cfg config.EnvCheck, code string) bool {
