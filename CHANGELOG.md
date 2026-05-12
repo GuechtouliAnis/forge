@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Added
+- `forge env check` — `consecutive_blank_lines` now reads `max_consecutive_blanks` from `[env.check]` in `.forge.toml`
+- `forge env check` — `value has leading whitespace` check introduced — errors when a value starts with a space or tab after `=`
+- `forge env check` — `lowercase_key` added as a valid `ignore_codes` entry
+- `forge env check` — `LowercaseKey` respects `cfg.AllowedLowercase` — exempted keys return no issue
+- `forge env check` — `file_ends_with_blank` added as a valid `ignore_codes` entry
+
+### Changed
+- `forge env check` — consecutive blank lines fires once per run with accurate range — message now reads `N consecutive blank lines (lines X–Y)`
+- `forge env check` — `trimmedKey` declaration moved after `!found` guard — avoids trimming garbage when no `=` is present
+- `forge env check` — `KeyStartsWithDigit` and `KeyInvalidChars` cases now use direct append — consistent with error handling pattern
+- `forge env check` — `LowercaseKey` extracted as a rule function — goes through `ShouldAdd` with `"lowercase_key"` code
+
+### Fixed
+- `forge env check` — consecutive blank lines no longer fires repeatedly across a single blank run
+- `forge env check` — consecutive blank lines no longer fires when `max_consecutive_blanks = 0`
+
 ## [1.5.0] - 2026-05-11
 
 ### Added
