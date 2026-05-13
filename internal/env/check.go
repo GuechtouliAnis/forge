@@ -42,19 +42,12 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 
 	seen := make(map[string]bool)
 	var issues []CheckIssue
-
-	add := func(lineNum, severity int, msg string) {
-		if severity >= level {
-			issues = append(issues, CheckIssue{Line: lineNum, Severity: severity, Message: msg})
-		}
-	}
-
 	var prevLine string
-	lineNum := 0
-	scanner := bufio.NewScanner(bytes.NewReader(data))
-
 	var consLines uint8
 	var consStart int
+
+	lineNum := 0
+	scanner := bufio.NewScanner(bytes.NewReader(data))
 
 	for scanner.Scan() {
 		raw := scanner.Text()
@@ -186,7 +179,7 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		}
 	}
 
-	// trailing blank line — check last two scanned lines
+	// ?  [WARN] - trailing blank line, check last two scanned lines
 	trimmed := strings.TrimRight(string(data), "\n")
 	if string(data) != trimmed && strings.TrimSpace(prevLine) == "" {
 		issue := &CheckIssue{
@@ -198,38 +191,46 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		}
 	}
 
-	// conformity check — drain goroutine result
+	// ? [WARN] - conformity check, drain goroutine result
 	if result := <-exampleCh; result.err == nil {
 		examplePath := filepath.Join(filepath.Dir(path), examplePath)
 		for k, meta := range result.keys {
+			// ? [WARN] - example has a key that has a value
 			if meta.HasValue {
-				issues = append(issues, CheckIssue{
+				issue := &CheckIssue{
 					Line:     0,
 					Severity: LevelWarn,
 					File:     examplePath,
-					Message:  fmt.Sprintf("key %q has a value set — example files should use empty or placeholder values", k),
-				})
+					Message:  fmt.Sprintf("key %q has a value set — example files should use empty or placeholder values", k)}
+				if ShouldAdd(issue, level, cfg, "example_has_value") {
+					issues = append(issues, *issue)
+				}
 			}
+			// ? [WARN] - key exists in .env.example but not in .env
 			if !seen[k] {
-				add(0, LevelWarn, fmt.Sprintf("key %q exists in %s but not in %s", k, examplePath, path))
+				issue := &CheckIssue{
+					Line:     0,
+					Severity: LevelWarn,
+					Message:  fmt.Sprintf("key %q exists in %s but not in %s", k, examplePath, path)}
+				if ShouldAdd(issue, level, cfg, "example_conformity") {
+					issues = append(issues, *issue)
+				}
 			}
 		}
 		for k := range seen {
-			if _, exists := result.keys[k]; !exists {
-				add(0, LevelWarn, fmt.Sprintf("key %q exists in %s but not in %s", k, path, examplePath))
+			// ? [WARN] - key exists in .env but not in .env.example
+			issue := &CheckIssue{
+				Line:     0,
+				Severity: LevelWarn,
+				Message:  fmt.Sprintf("key %q exists in %s but not in %s", k, path, examplePath)}
+			if _, exists := result.keys[k]; !exists && ShouldAdd(issue, level, cfg, "example_conformity") {
+				issues = append(issues, *issue)
 			}
 		}
 	}
 
-	sort.Slice(issues, func(i, j int) bool {
-		if issues[i].Line == 0 {
-			return false
-		}
-		if issues[j].Line == 0 {
-			return true
-		}
-		return issues[i].Line < issues[j].Line
-	})
+	// Sort issues by line number
+	sort.Slice(issues, IssuesByLine(issues))
 
 	return issues, nil
 }

@@ -15,6 +15,9 @@
 - `forge env check` — `KeyStartsWithDigit` and `KeyInvalidChars` cases now use direct append — consistent with error handling pattern
 - `forge env check` — `LowercaseKey` extracted as a rule function — goes through `ShouldAdd` with `"lowercase_key"` code
 - `forge env check` — `DuplicateKey`, `KeyContainsSpace`, `ValueLeadingSpace`, `NoEqualSign`, `FileEndsWithBlank`, `EmptyKey` inlined — pure struct wraps with no logic removed from `rules.go`
+- `forge env check` — `example_has_value` and `example_conformity` now respect `ignore_codes` and `--level` flag via `ShouldAdd`
+- `forge env check` — `add()` closure removed — all issue appends now use direct struct literals
+- `forge env check` — sort comparator extracted to `IssuesByLine` — reusable across future callers
 
 ### Fixed
 - `forge env check` — consecutive blank lines no longer fires repeatedly across a single blank run

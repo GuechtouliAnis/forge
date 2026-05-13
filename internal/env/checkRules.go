@@ -83,6 +83,18 @@ func LowercaseKey(key string, lineNum int, allowed []string) *CheckIssue {
 		Message: fmt.Sprintf("key contains lowercase: %q", key)}
 }
 
+func IssuesByLine(issues []CheckIssue) func(i, j int) bool {
+	return func(i, j int) bool {
+		if issues[i].Line == 0 {
+			return false
+		}
+		if issues[j].Line == 0 {
+			return true
+		}
+		return issues[i].Line < issues[j].Line
+	}
+}
+
 func IsIgnored(cfg config.EnvCheck, code string) bool {
 	for _, c := range cfg.IgnoreCodes {
 		if c == code {
