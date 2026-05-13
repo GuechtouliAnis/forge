@@ -77,7 +77,12 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 
 		// non-blank line — flush consecutive blank run if over threshold
 		if cfg.MaxConsBlanks > 0 && consLines > uint8(cfg.MaxConsBlanks) {
-			if issue := ConsecutiveBlanks(consStart, lineNum-1, consLines); ShouldAdd(issue, level, cfg, "consecutive_blank_lines") {
+			issue := &CheckIssue{
+				Line:     consStart,
+				Severity: LevelWarn,
+				Message:  fmt.Sprintf("%d consecutive blank lines (lines %d–%d)", consLines, consStart, lineNum-1),
+			}
+			if ShouldAdd(issue, level, cfg, "consecutive_blank_lines") {
 				issues = append(issues, *issue)
 			}
 		}
@@ -105,7 +110,11 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 
 		// ! [ERROR] - malformed line (no equal sign found)
 		if !found {
-			issues = append(issues, *NoEqualSign(line, lineNum))
+			issue := &CheckIssue{
+				Line:     lineNum,
+				Severity: LevelError,
+				Message:  fmt.Sprintf("malformed line, no '=' found: %q", strings.TrimSpace(line))}
+			issues = append(issues, *issue)
 			continue
 		}
 
@@ -113,11 +122,19 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 
 		// ! [ERROR] - key contains space (API = KEY) or value has leading whitespace (KEY= value)
 		if strings.ContainsAny(key, " \t") {
-			issues = append(issues, *KeyContainsSpace(key, lineNum))
+			issue := &CheckIssue{
+				Line:     lineNum,
+				Severity: LevelError,
+				Message:  fmt.Sprintf("key contains spaces: %q", strings.TrimSpace(key))}
+			issues = append(issues, *issue)
 			continue
 		}
 		if value != strings.TrimLeft(value, " \t") {
-			issues = append(issues, *ValueLeadingSpace(trimmedKey, lineNum))
+			issue := &CheckIssue{
+				Line:     lineNum,
+				Severity: LevelError,
+				Message:  fmt.Sprintf("value has leading whitespace for key: %q", trimmedKey)}
+			issues = append(issues, *issue)
 			continue
 		}
 
@@ -148,8 +165,11 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 
 		// ! [ERROR] - duplicate key
 		if seen[trimmedKey] {
-			// add(lineNum, LevelError, fmt.Sprintf("duplicate key: %q", trimmedKey))
-			issues = append(issues, *DuplicateKey(trimmedKey, lineNum))
+			issue := &CheckIssue{
+				Line:     lineNum,
+				Severity: LevelError,
+				Message:  fmt.Sprintf("duplicate key: %q", trimmedKey)}
+			issues = append(issues, *issue)
 		}
 		seen[trimmedKey] = true
 
@@ -169,7 +189,11 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 	// trailing blank line — check last two scanned lines
 	trimmed := strings.TrimRight(string(data), "\n")
 	if string(data) != trimmed && strings.TrimSpace(prevLine) == "" {
-		if issue := FileEndsWithBlank(lineNum); ShouldAdd(issue, level, cfg, "file_ends_with_blank") {
+		issue := &CheckIssue{
+			Line:     lineNum,
+			Severity: LevelWarn,
+			Message:  "file ends with blank line"}
+		if ShouldAdd(issue, level, cfg, "file_ends_with_blank") {
 			issues = append(issues, *issue)
 		}
 	}

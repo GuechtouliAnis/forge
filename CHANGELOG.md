@@ -14,6 +14,7 @@
 - `forge env check` — `trimmedKey` declaration moved after `!found` guard — avoids trimming garbage when no `=` is present
 - `forge env check` — `KeyStartsWithDigit` and `KeyInvalidChars` cases now use direct append — consistent with error handling pattern
 - `forge env check` — `LowercaseKey` extracted as a rule function — goes through `ShouldAdd` with `"lowercase_key"` code
+- `forge env check` — `DuplicateKey`, `KeyContainsSpace`, `ValueLeadingSpace`, `NoEqualSign`, `FileEndsWithBlank`, `EmptyKey` inlined — pure struct wraps with no logic removed from `rules.go`
 
 ### Fixed
 - `forge env check` — consecutive blank lines no longer fires repeatedly across a single blank run
