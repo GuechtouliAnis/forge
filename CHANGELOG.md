@@ -8,6 +8,9 @@
 - `forge env check` — `lowercase_key` added as a valid `ignore_codes` entry
 - `forge env check` — `LowercaseKey` respects `cfg.AllowedLowercase` — exempted keys return no issue
 - `forge env check` — `file_ends_with_blank` added as a valid `ignore_codes` entry
+- `forge env check` — `ignore_keys` support — keys listed in `[env.check] ignore_keys` are skipped entirely including commented key warns and conformity diff
+- `forge env check` — `required_keys` support — keys listed in `[env.check] required_keys` error if missing from `.env` after full scan
+- `forge env check` — `checkExample` skip empty lines and validate keys
 
 ### Changed
 - `forge env check` — consecutive blank lines fires once per run with accurate range — message now reads `N consecutive blank lines (lines X–Y)`

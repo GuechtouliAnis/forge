@@ -44,6 +44,10 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 	var prevLine string
 	var consLines uint8
 	var consStart int
+	ignoredKeys := make(map[string]bool)
+	for _, k := range cfg.IgnoreKeys {
+		ignoredKeys[k] = true
+	}
 
 	lineNum := 0
 	scanner := bufio.NewScanner(bytes.NewReader(data))
@@ -75,7 +79,7 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 			issue := &CheckIssue{
 				Line:     consStart,
 				Severity: LevelWarn,
-				Message:  fmt.Sprintf("%d consecutive blank lines (lines %d–%d)", consLines, consStart, lineNum-1),
+				Message:  fmt.Sprintf("%d consecutive blank lines (lines %d-%d)", consLines, consStart, lineNum-1),
 			}
 			if ShouldAdd(issue, level, cfg, "consecutive_blank_lines") {
 				issues = append(issues, *issue)
@@ -92,14 +96,23 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		if strings.HasPrefix(strings.TrimSpace(line), "#") {
 			// strip line from comment sign
 			stripped := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "#"))
-			// ? [WARN] - commented_key_has_value
-			if issue := CommentedHasValue(stripped, lineNum); ShouldAdd(issue, level, cfg, "commented_key_has_value") {
-				issues = append(issues, *issue)
+			if key, _, found := strings.Cut(stripped, "="); found {
+				// ? [WARN] - commented_key_has_value
+				if !ignoredKeys[strings.TrimSpace(key)] {
+					if issue := CommentedHasValue(stripped, lineNum); ShouldAdd(issue, level, cfg, "commented_key_has_value") {
+						issues = append(issues, *issue)
+					}
+				}
 			}
 			continue
 		}
 
 		key, value, found := strings.Cut(line, "=")
+		trimmedKey := strings.TrimSpace(key)
+
+		if ignoredKeys[trimmedKey] {
+			continue
+		}
 
 		// ! [ERROR] - malformed line (no equal sign found)
 		if !found {
@@ -110,8 +123,6 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 			issues = append(issues, *issue)
 			continue
 		}
-
-		trimmedKey := strings.TrimSpace(key)
 
 		// ! [ERROR] - key contains space (API = KEY) or value has leading whitespace (KEY= value)
 		if strings.ContainsAny(key, " \t") {
@@ -180,6 +191,17 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		trimmedVal := strings.TrimSpace(value)
 		if issue := ValidateValue(trimmedKey, trimmedVal, lineNum); issue != nil {
 			issues = append(issues, *issue)
+		}
+	}
+
+	// ! [ERROR] - required Keys missing
+	for _, k := range cfg.RequiredKeys {
+		if !seen[k] {
+			issues = append(issues, CheckIssue{
+				Line:     0,
+				Severity: LevelError,
+				Message:  fmt.Sprintf("required key %q is missing", k),
+			})
 		}
 	}
 

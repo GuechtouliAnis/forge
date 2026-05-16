@@ -28,14 +28,13 @@ line_ending = "lf"
 check_level = "warn"
 
 # Keys to skip entirely during all checks, including conformity diff.
-# Supports wildcard prefix matching — e.g. "DB_*" skips all DB_ keys.
-ignore_keys = []
+ignore_keys = ["AAA"]
 
 # Suppress specific check categories globally.
 # Valid codes: "empty_value", "trailing_whitespace", "consecutive_blank_lines",
 #              "commented_key_has_value", "example_conformity", "example_has_value",
 #              "file_ends_with_blank", "lowercase_key"
-ignore_codes = ["commented_key_has_value", "lowercase_key"]
+ignore_codes = ["example_conformity", "lowercase_key"]
 
 # Keys that must exist in .env — Forge errors if any are missing.
 required_keys = []

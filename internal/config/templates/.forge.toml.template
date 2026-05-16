@@ -28,7 +28,6 @@ line_ending = "lf"
 check_level = "warn"
 
 # Keys to skip entirely during all checks, including conformity diff.
-# Supports wildcard prefix matching — e.g. "DB_*" skips all DB_ keys.
 ignore_keys = []
 
 # Suppress specific check categories globally.
