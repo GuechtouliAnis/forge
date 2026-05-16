@@ -29,22 +29,31 @@ func ParseKeysFromExample(path string) (map[string]ExampleKey, error) {
 	scanner := bufio.NewScanner(bytes.NewReader(data))
 	for scanner.Scan() {
 		line := strings.TrimPrefix(scanner.Text(), "export ")
+
 		if strings.TrimSpace(line) == "" || strings.HasPrefix(strings.TrimSpace(line), "#") {
 			continue
 		}
-		if key, value, found := strings.Cut(line, "="); found {
-			key = strings.TrimSpace(key)
-			if key == "" {
-				continue
-			}
-			if ValidateKey(key) == KeyInvalidChars || ValidateKey(key) == KeyStartsWithDigit {
-				continue
-			}
-			if h := strings.Index(value, "#"); h >= 0 {
-				value = strings.TrimSpace(value[:h])
-			}
-			keys[key] = ExampleKey{HasValue: strings.TrimSpace(value) != ""}
+
+		key, value, found := strings.Cut(line, "=")
+		if !found {
+			continue
 		}
+
+		key = strings.TrimSpace(key)
+		if key == "" {
+			continue
+		}
+
+		if vk := ValidateKey(key); vk == KeyInvalidChars || vk == KeyStartsWithDigit {
+			continue
+		}
+
+		if h := strings.Index(value, "#"); h >= 0 {
+			value = strings.TrimSpace(value[:h])
+		}
+
+		keys[key] = ExampleKey{HasValue: strings.TrimSpace(value) != ""}
 	}
+
 	return keys, nil
 }

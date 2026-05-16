@@ -41,9 +41,11 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 
 	seen := make(map[string]bool)
 	var issues []CheckIssue
-	var prevLine string
-	var consLines uint8
-	var consStart int
+
+	var lastLine string
+	var consecutiveBlankLines int32
+	var consecutiveBlankLinesStart int32
+
 	ignoredKeys := make(map[string]bool)
 	for _, k := range cfg.IgnoreKeys {
 		ignoredKeys[k] = true
@@ -57,6 +59,8 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		raw := scanner.Text()
 		lineNum++
 
+		lastLine = raw
+
 		line := strings.TrimPrefix(raw, "export ")
 
 		// ? [WARN] - trailing whitespace
@@ -66,26 +70,25 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 
 		// ? [WARN] - consecutive blank lines
 		if strings.TrimSpace(raw) == "" {
-			consLines++
-			if consLines == 1 {
-				consStart = lineNum
+			consecutiveBlankLines++
+			if consecutiveBlankLines == 1 {
+				consecutiveBlankLinesStart = int32(lineNum)
 			}
-			prevLine = raw
 			continue
 		}
 
 		// non-blank line — flush consecutive blank run if over threshold
-		if cfg.MaxConsBlanks > 0 && consLines > uint8(cfg.MaxConsBlanks) {
+		if cfg.MaxConsBlanks >= 0 && consecutiveBlankLines > cfg.MaxConsBlanks {
 			issue := &CheckIssue{
-				Line:     consStart,
+				Line:     int(consecutiveBlankLinesStart),
 				Severity: LevelWarn,
-				Message:  fmt.Sprintf("%d consecutive blank lines (lines %d-%d)", consLines, consStart, lineNum-1),
+				Message:  fmt.Sprintf("%d consecutive blank lines (lines %d-%d)", consecutiveBlankLines, consecutiveBlankLinesStart, lineNum-1),
 			}
 			if ShouldAdd(issue, level, cfg, "consecutive_blank_lines") {
 				issues = append(issues, *issue)
 			}
 		}
-		consLines = 0
+		consecutiveBlankLines = 0
 
 		// skip blank lines
 		if strings.TrimSpace(line) == "" {
@@ -124,12 +127,12 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 			continue
 		}
 
-		// ! [ERROR] - key contains space (API = KEY) or value has leading whitespace (KEY= value)
+		// ! [ERROR] - key contains space ( API = KEY) or value has leading whitespace (KEY= value)
 		if strings.ContainsAny(key, " \t") {
 			issue := &CheckIssue{
 				Line:     lineNum,
 				Severity: LevelError,
-				Message:  fmt.Sprintf("key contains spaces: %q", strings.TrimSpace(key))}
+				Message:  fmt.Sprintf("key contains spaces: %q", key)}
 			issues = append(issues, *issue)
 			continue
 		}
@@ -194,6 +197,18 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		}
 	}
 
+	// ? [WARN] - consecutive blank lines at end of file
+	if cfg.MaxConsBlanks >= 0 && consecutiveBlankLines > cfg.MaxConsBlanks {
+		issue := &CheckIssue{
+			Line:     int(consecutiveBlankLinesStart),
+			Severity: LevelWarn,
+			Message:  fmt.Sprintf("%d consecutive blank lines (lines %d-%d)", consecutiveBlankLines, consecutiveBlankLinesStart, lineNum),
+		}
+		if ShouldAdd(issue, level, cfg, "consecutive_blank_lines") {
+			issues = append(issues, *issue)
+		}
+	}
+
 	// ! [ERROR] - required Keys missing
 	for _, k := range cfg.RequiredKeys {
 		if !seen[k] {
@@ -206,8 +221,8 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 	}
 
 	// ?  [WARN] - trailing blank line, check last two scanned lines
-	trimmed := strings.TrimRight(string(data), "\n")
-	if string(data) != trimmed && strings.TrimSpace(prevLine) == "" {
+	trimmed := strings.TrimRight(string(data), "\r\n")
+	if string(data) != trimmed && strings.TrimSpace(lastLine) == "" {
 		issue := &CheckIssue{
 			Line:     lineNum,
 			Severity: LevelWarn,

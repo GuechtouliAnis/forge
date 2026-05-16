@@ -53,6 +53,8 @@ var envCheckCmd = &cobra.Command{
 
 		if len(issues) == 0 {
 			fmt.Println("[env check]: no issues found")
+		} else {
+			os.Exit(1)
 		}
 
 		return nil

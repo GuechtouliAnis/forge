@@ -40,10 +40,10 @@ ignore_codes = ["example_conformity", "lowercase_key"]
 required_keys = []
 
 # Lowercase keys to allow without warning — e.g. ["version", "env"].
-allowed_lowercase = ["Aniss"]
+allowed_lowercase = []
 
 # Maximum number of consecutive blank lines allowed.
-# Set to 0 to disable.
+# Set to -1 to disable.
 max_consecutive_blanks = 2
 
 

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-05-16
+
 ### Added
 - `forge env check` — `consecutive_blank_lines` now reads `max_consecutive_blanks` from `[env.check]` in `.forge.toml`
 - `forge env check` — `value has leading whitespace` check introduced — errors when a value starts with a space or tab after `=`
@@ -23,6 +25,7 @@
 - `forge env check` — sort comparator extracted to `IssuesByLine` — reusable across future callers
 - `forge env check` — `ValidateKey` now uses an allowlist `[A-Za-z0-9_]` instead of a blocklist — catches `.`, `-`, `/`, `:` and any other non-standard character
 - `forge env check` — Invalid character check now runs before lowercase check — ensures `KeyInvalidChars` takes priority over `KeyIsLowercase`
+- `forge env check` — exits with code 1 when issues are found — previously always exited 0, making it invisible to CI pipelines
 
 ### Removed
 - `forge env check` — `enforce_export` check removed — `export` prefix breaks Docker `--env-file` and most dotenv libraries
@@ -31,6 +34,14 @@
 ### Fixed
 - `forge env check` — consecutive blank lines no longer fires repeatedly across a single blank run
 - `forge env check` — consecutive blank lines no longer fires when `max_consecutive_blanks = 0`
+- `forge env check` — `consecutiveBlankLines` counter typed as `uint8`, wraps at 256 — changed to `int32`
+- `forge env check` — consecutive blank lines at EOF never flushed — post-loop flush added
+- `forge env check` — `max_consecutive_blanks = 0` silently disabled the check — condition changed to `>= 0`, use `-1` to disable
+- `forge env check` — `file_ends_with_blank` false positive on CRLF files — `TrimRight` now strips `\r\n` instead of `\n` only
+- `forge env check` — `file_ends_with_blank` never fired — `lastLine` (formerly `previousLine`) was assigned at the bottom of the loop after all `continue` statements, skipping blank lines entirely — moved to top of loop
+- `forge env check` — post-loop consecutive blank lines message reported `lineNum-1` as end of run — corrected to `lineNum`
+- `forge env check` — `ValidateKey` called twice per key in `ParseKeysFromExample` — collapsed to single assignment
+- `forge env check` — `export` stripping in `ParseKeysFromExample` trimmed leading whitespace before the prefix, diverging from `check.go` behaviour — aligned to `strings.TrimPrefix(line, "export ")`
 
 ## [1.5.0] - 2026-05-11
 

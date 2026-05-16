@@ -32,7 +32,7 @@ ignore_keys = []
 
 # Suppress specific check categories globally.
 # Valid codes: "empty_value", "trailing_whitespace", "consecutive_blank_lines",
-#              "commented_key_has_value", "example_conformity", "example_has_value"
+#              "commented_key_has_value", "example_conformity", "example_has_value",
 #              "file_ends_with_blank", "lowercase_key"
 ignore_codes = []
 
@@ -43,7 +43,7 @@ required_keys = []
 allowed_lowercase = []
 
 # Maximum number of consecutive blank lines allowed.
-# Set to 0 to disable.
+# Set to -1 to disable.
 max_consecutive_blanks = 1
 
 
