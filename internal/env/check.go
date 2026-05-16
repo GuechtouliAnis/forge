@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"path/filepath"
 	"sort"
 	"strings"
 
@@ -50,8 +49,11 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 	scanner := bufio.NewScanner(bytes.NewReader(data))
 
 	for scanner.Scan() {
+
 		raw := scanner.Text()
 		lineNum++
+
+		line := strings.TrimPrefix(raw, "export ")
 
 		// ? [WARN] - trailing whitespace
 		if issue := CheckTrailingWhitespace(raw, lineNum); ShouldAdd(issue, level, cfg, "trailing_whitespace") {
@@ -81,7 +83,10 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		}
 		consLines = 0
 
-		line := strings.TrimPrefix(raw, "export ")
+		// skip blank lines
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
 
 		// skip comment lines, but warn if commented key has a value
 		if strings.HasPrefix(strings.TrimSpace(line), "#") {
@@ -91,11 +96,6 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 			if issue := CommentedHasValue(stripped, lineNum); ShouldAdd(issue, level, cfg, "commented_key_has_value") {
 				issues = append(issues, *issue)
 			}
-			continue
-		}
-
-		// skip blank lines
-		if strings.TrimSpace(line) == "" {
 			continue
 		}
 
@@ -160,6 +160,11 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 			}
 		}
 
+		// ? [WARN] - empty_value (KEY=)
+		if issue := EmptyValue(key, value, lineNum); ShouldAdd(issue, level, cfg, "empty_value") {
+			issues = append(issues, *issue)
+		}
+
 		// ! [ERROR] - duplicate key
 		if seen[trimmedKey] {
 			issue := &CheckIssue{
@@ -169,11 +174,6 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 			issues = append(issues, *issue)
 		}
 		seen[trimmedKey] = true
-
-		// ? [WARN] - empty_value (KEY=)
-		if issue := EmptyValue(key, value, lineNum); ShouldAdd(issue, level, cfg, "empty_value") {
-			issues = append(issues, *issue)
-		}
 
 		// ! [ERROR] - unclosed quotation
 		// Errors appended directly without a level check since errors should not be ignored
@@ -197,7 +197,6 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 
 	// ? [WARN] - conformity check, drain goroutine result
 	if result := <-exampleCh; result.err == nil {
-		examplePath := filepath.Join(filepath.Dir(path), examplePath)
 		for k, meta := range result.keys {
 			// ? [WARN] - example has a key that has a value
 			if meta.HasValue {

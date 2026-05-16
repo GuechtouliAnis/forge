@@ -34,6 +34,12 @@ func ParseKeysFromExample(path string) (map[string]ExampleKey, error) {
 		}
 		if key, value, found := strings.Cut(line, "="); found {
 			key = strings.TrimSpace(key)
+			if key == "" {
+				continue
+			}
+			if ValidateKey(key) == KeyInvalidChars || ValidateKey(key) == KeyStartsWithDigit {
+				continue
+			}
 			if h := strings.Index(value, "#"); h >= 0 {
 				value = strings.TrimSpace(value[:h])
 			}
