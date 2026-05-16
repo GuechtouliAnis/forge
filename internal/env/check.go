@@ -141,12 +141,16 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		// ! [ERROR] - validate key
 		switch ValidateKey(trimmedKey) {
 		case KeyStartsWithDigit:
-			issues = append(issues, CheckIssue{Line: lineNum, Severity: LevelError,
-				Message: fmt.Sprintf("key starts with digit: %q", trimmedKey)})
+			issues = append(issues, CheckIssue{
+				Line:     lineNum,
+				Severity: LevelError,
+				Message:  fmt.Sprintf("key starts with digit: %q", trimmedKey)})
 			continue
 		case KeyInvalidChars:
-			issues = append(issues, CheckIssue{Line: lineNum, Severity: LevelError,
-				Message: fmt.Sprintf("key contains invalid characters: %q", trimmedKey)})
+			issues = append(issues, CheckIssue{
+				Line:     lineNum,
+				Severity: LevelError,
+				Message:  fmt.Sprintf("key contains invalid characters: %q", trimmedKey)})
 			continue
 		case KeyIsLowercase:
 			// ? [WARN] - lowercase_key

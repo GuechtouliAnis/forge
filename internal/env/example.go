@@ -67,18 +67,21 @@ func ParseEnv(path string) (string, error) {
 	return strings.Join(result, "\n"), nil
 }
 
-// ValidateKey checks if a .env key is valid and returns a code indicating the result.
-// Returns KeyValid if the key is valid, otherwise returns a code indicating the issue.
-// Callers are responsible for handling warnings and deciding whether to skip the key.
+// ValidateKey checks if a .env key conforms to standard naming rules.
+// Valid keys must match [A-Z][A-Z0-9_]* — uppercase letters, digits, and underscores only.
+// Returns KeyValid if the key passes, otherwise returns a code indicating the first violation found:
+//   - KeyStartsWithDigit — key begins with a digit
+//   - KeyIsLowercase     — key contains a lowercase letter
+//   - KeyInvalidChars    — key contains a character outside [A-Z0-9_]
 func ValidateKey(key string) int {
-	const invalidKeyChars = "$!@{} \t"
 
 	if unicode.IsDigit(rune(key[0])) {
 		return KeyStartsWithDigit
 	}
-
-	if strings.ContainsAny(key, invalidKeyChars) {
-		return KeyInvalidChars
+	for _, c := range key {
+		if !unicode.IsLetter(c) && !unicode.IsDigit(c) && c != '_' {
+			return KeyInvalidChars
+		}
 	}
 
 	for _, c := range key {

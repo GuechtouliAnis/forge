@@ -18,6 +18,12 @@
 - `forge env check` — `example_has_value` and `example_conformity` now respect `ignore_codes` and `--level` flag via `ShouldAdd`
 - `forge env check` — `add()` closure removed — all issue appends now use direct struct literals
 - `forge env check` — sort comparator extracted to `IssuesByLine` — reusable across future callers
+- `forge env check` — `ValidateKey` now uses an allowlist `[A-Za-z0-9_]` instead of a blocklist — catches `.`, `-`, `/`, `:` and any other non-standard character
+- `forge env check` — Invalid character check now runs before lowercase check — ensures `KeyInvalidChars` takes priority over `KeyIsLowercase`
+
+### Removed
+- `forge env check` — `enforce_export` check removed — `export` prefix breaks Docker `--env-file` and most dotenv libraries
+- `.forge.toml` — `enforce_export` key removed from `[env.check]` config
 
 ### Fixed
 - `forge env check` — consecutive blank lines no longer fires repeatedly across a single blank run

@@ -15,8 +15,7 @@ type EnvConfig struct {
 
 // ENV ADD
 type EnvAdd struct {
-	ExportPrefix bool   `toml:"export_prefix"`
-	LineEnding   string `toml:"line_ending"`
+	LineEnding string `toml:"line_ending"`
 }
 
 // ENV CHECK
@@ -27,7 +26,6 @@ type EnvCheck struct {
 	RequiredKeys     []string `toml:"required_keys"`
 	AllowedLowercase []string `toml:"allowed_lowercase"`
 	MaxConsBlanks    int      `toml:"max_consecutive_blanks"`
-	EnforceExport    bool     `toml:"enforce_export"`
 }
 
 // GIT
@@ -55,13 +53,11 @@ func defaults() *Config {
 			DefaultFile: ".env",
 			ExampleFile: ".env.example",
 			Add: EnvAdd{
-				ExportPrefix: false,
-				LineEnding:   "lf",
+				LineEnding: "lf",
 			},
 			Check: EnvCheck{
 				CheckLevel:    "warn",
 				MaxConsBlanks: 1,
-				EnforceExport: false,
 			},
 		},
 	}

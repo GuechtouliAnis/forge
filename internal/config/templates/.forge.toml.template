@@ -15,10 +15,6 @@ example_file = ".env.example"
 
 # ——— ENV ADD ——————————————————————————————————————————————————————————————————
 [env.add]
-# Prepend "export " to every key written by forge env add.
-# Should match enforce_export in [env.check] to avoid self-inflicted warnings.
-export_prefix = false
-
 # Line ending style for appended keys.
 # Values: "lf" | "crlf"
 line_ending = "lf"
@@ -50,9 +46,6 @@ allowed_lowercase = []
 # Maximum number of consecutive blank lines allowed.
 # Set to 0 to disable.
 max_consecutive_blanks = 1
-
-# Warn if lines do not use the "export " prefix.
-enforce_export = false
 
 
 # ——— GIT CLEAN ———————————————————————————————————————————————————————————————
