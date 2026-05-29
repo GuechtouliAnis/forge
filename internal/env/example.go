@@ -48,7 +48,7 @@ func ParseEnv(path string) (string, error) {
 			// remove comment on "continue" to exclude invalid keys from .env.example
 			switch ValidateKey(key) {
 			case KeyStartsWithDigit:
-				fmt.Printf("WARNING: key %q starts with digit\n", key)
+				fmt.Printf("[warn] - key starts with digit: %q\n", key)
 				// continue
 			case KeyInvalidChars:
 				fmt.Printf("WARNING: key %q contains invalid characters\n", key)

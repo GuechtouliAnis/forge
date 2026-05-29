@@ -27,7 +27,7 @@ type CheckIssue struct {
 
 // CheckEnv validates a .env file and returns a list of issues.
 // It checks for key naming rules, duplicate keys, malformed lines, and more.
-func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) ([]CheckIssue, error) {
+func CheckEnv(path, examplePath string, level int, cfg config.EnvCheck) ([]CheckIssue, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("[env check]: %w", err)
@@ -63,11 +63,6 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 
 		line := strings.TrimPrefix(raw, "export ")
 
-		// ? [WARN] - trailing whitespace
-		if issue := CheckTrailingWhitespace(raw, lineNum); ShouldAdd(issue, level, cfg, "trailing_whitespace") {
-			issues = append(issues, *issue)
-		}
-
 		// ? [WARN] - consecutive blank lines
 		if strings.TrimSpace(raw) == "" {
 			consecutiveBlankLines++
@@ -93,6 +88,11 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		// skip blank lines
 		if strings.TrimSpace(line) == "" {
 			continue
+		}
+
+		// ? [WARN] - trailing whitespace
+		if issue := CheckTrailingWhitespace(raw, lineNum); ShouldAdd(issue, level, cfg, "trailing_whitespace") {
+			issues = append(issues, *issue)
 		}
 
 		// skip comment lines, but warn if commented key has a value
@@ -123,24 +123,6 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 				Line:     lineNum,
 				Severity: LevelError,
 				Message:  fmt.Sprintf("malformed line, no '=' found: %q", strings.TrimSpace(line))}
-			issues = append(issues, *issue)
-			continue
-		}
-
-		// ! [ERROR] - key contains space ( API = KEY) or value has leading whitespace (KEY= value)
-		if strings.ContainsAny(key, " \t") {
-			issue := &CheckIssue{
-				Line:     lineNum,
-				Severity: LevelError,
-				Message:  fmt.Sprintf("key contains spaces: %q", key)}
-			issues = append(issues, *issue)
-			continue
-		}
-		if value != strings.TrimLeft(value, " \t") {
-			issue := &CheckIssue{
-				Line:     lineNum,
-				Severity: LevelError,
-				Message:  fmt.Sprintf("value has leading whitespace for key: %q", trimmedKey)}
 			issues = append(issues, *issue)
 			continue
 		}
@@ -190,10 +172,27 @@ func CheckEnv(path string, examplePath string, level int, cfg config.EnvCheck) (
 		seen[trimmedKey] = true
 
 		// ! [ERROR] - unclosed quotation
-		// Errors appended directly without a level check since errors should not be ignored
 		trimmedVal := strings.TrimSpace(value)
 		if issue := ValidateValue(trimmedKey, trimmedVal, lineNum); issue != nil {
 			issues = append(issues, *issue)
+		}
+
+		// ! [ERROR] - key contains space ( API = KEY) or value has leading whitespace (KEY= value)
+		if strings.ContainsAny(key, " \t") {
+			issue := &CheckIssue{
+				Line:     lineNum,
+				Severity: LevelError,
+				Message:  fmt.Sprintf("key contains spaces: %q", key)}
+			issues = append(issues, *issue)
+			continue
+		}
+		if value != strings.TrimLeft(value, " \t") {
+			issue := &CheckIssue{
+				Line:     lineNum,
+				Severity: LevelError,
+				Message:  fmt.Sprintf("value has leading whitespace for key: %q", trimmedKey)}
+			issues = append(issues, *issue)
+			continue
 		}
 	}
 

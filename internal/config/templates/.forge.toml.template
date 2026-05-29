@@ -22,7 +22,6 @@ line_ending = "lf"
 
 # ——— ENV CHECK ————————————————————————————————————————————————————————————————
 [env.check]
-
 # Minimum severity level to report. "warn" reports everything, "error" reports errors only.
 # Values: "warn" | "error"
 check_level = "warn"
@@ -45,6 +44,11 @@ allowed_lowercase = []
 # Maximum number of consecutive blank lines allowed.
 # Set to -1 to disable.
 max_consecutive_blanks = 1
+
+
+# ——— ENV EXAMPLE —————————————————————————————————————————————————————————————
+[env.example]
+invalid_keys = "warn"   # "warn" | "skip" | "include"
 
 
 # ——— GIT CLEAN ———————————————————————————————————————————————————————————————

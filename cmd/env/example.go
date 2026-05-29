@@ -2,7 +2,9 @@ package cmdenv
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/GuechtouliAnis/forge/internal/config"
 	"github.com/GuechtouliAnis/forge/internal/env"
 	"github.com/spf13/cobra"
 )
@@ -15,15 +17,29 @@ var envExampleCmd = &cobra.Command{
 	Use:   "example",
 	Short: "Generate a .env.example from .env",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Printf("\n[beta] forge env example: review your .env.example before committing — edge cases may apply.\n\n")
-		content, err := env.ParseEnv(".env")
+		cwd, err := os.Getwd()
 		if err != nil {
-			return err
+			return fmt.Errorf("[env example]: could not determine working directory: %w", err)
+		}
+
+		cfg, err := config.Load(cwd)
+		if err != nil {
+			return fmt.Errorf("[env example]: could not load .forge.toml: %w", err)
+		}
+
+		path := cfg.Env.DefaultFile
+		examplePath := cfg.Env.ExampleFile
+		// invalidKeys := cfg.Env.Example.InvalidKeys
+
+		fmt.Printf("\n[Note] forge env example: review your .env.example before committing — edge cases may apply.\n\n")
+		content, err := env.ParseEnv(path)
+		if err != nil {
+			return fmt.Errorf("[env example]: could not parse %v: %w", path, err)
 		}
 		if envYes {
-			return env.WriteEnvExampleForce(".env.example", content)
+			return env.WriteEnvExampleForce(examplePath, content)
 		}
-		return env.WriteEnvExample(".env.example", content)
+		return env.WriteEnvExample(examplePath, content)
 	},
 }
 

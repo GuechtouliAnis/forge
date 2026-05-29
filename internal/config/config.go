@@ -11,6 +11,7 @@ type EnvConfig struct {
 	ExampleFile string `toml:"example_file"`
 	Add         EnvAdd
 	Check       EnvCheck
+	Example     EnvExample
 }
 
 // ENV ADD
@@ -26,6 +27,11 @@ type EnvCheck struct {
 	RequiredKeys     []string `toml:"required_keys"`
 	AllowedLowercase []string `toml:"allowed_lowercase"`
 	MaxConsBlanks    int32    `toml:"max_consecutive_blanks"`
+}
+
+// ENV EXAMPLE
+type EnvExample struct {
+	InvalidKeys string `toml:"invalid_keys"`
 }
 
 // GIT
@@ -58,6 +64,9 @@ func defaults() *Config {
 			Check: EnvCheck{
 				CheckLevel:    "warn",
 				MaxConsBlanks: -1,
+			},
+			Example: EnvExample{
+				InvalidKeys: "warn",
 			},
 		},
 	}
