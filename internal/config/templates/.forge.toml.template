@@ -46,12 +46,12 @@ allowed_lowercase = []
 max_consecutive_blanks = 1
 
 
-# ——— ENV EXAMPLE —————————————————————————————————————————————————————————————
+# ——— ENV EXAMPLE ——————————————————————————————————————————————————————————————
 [env.example]
 invalid_keys = "warn"   # "warn" | "skip" | "include"
 
 
-# ——— GIT CLEAN ———————————————————————————————————————————————————————————————
+# ——— GIT CLEAN ————————————————————————————————————————————————————————————————
 [git.clean]
 # Days since last commit before a branch is considered dusty.
 # Set to 0 to disable age-based detection.
@@ -62,7 +62,7 @@ stale_days = 30
 commits_behind = 10
 
 
-# ——— GIT COMMIT ——————————————————————————————————————————————————————————————
+# ——— GIT COMMIT ———————————————————————————————————————————————————————————————
 [git.commit]
 # Commit message format template. Use {domain} and {message} as placeholders.
 # Set to "" to disable format enforcement (message is used as-is).

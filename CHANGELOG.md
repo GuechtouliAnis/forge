@@ -16,6 +16,9 @@
 - Duplicate key detection moved inside `ParseEnv` with consistent `[warn]` formatting
 - `EnvExample` — struct added to config with `invalid_keys` field and `"warn"` as default
 
+### Removed
+- `forge env init` — removed; insufficient standalone value over `cp .env.example .env`
+
 ## [1.5.1] - 2026-05-16
 
 ### Added

@@ -28,14 +28,6 @@ Groups all `.env` management subcommands — generate, validate, and populate yo
 forge env   # prints help and available subcommands
 ```
 
-#### `forge env init`
-Initializes a .env file from .env.example. If no example file exists, it creates an empty one. It also automatically adds the target file to .gitignore to prevent secret leaks.
-```bash
-forge env init                 # create .env and update .gitignore
-forge env init .env.dev        # initialize a custom path
-forge env init --no-gitignore  # initialize without modifying .gitignore
-```
-
 #### `forge env check`
 Validates a `.env` file against key naming rules, reporting errors and warnings with line numbers.
 ```bash
