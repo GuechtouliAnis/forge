@@ -29,10 +29,10 @@ var envExampleCmd = &cobra.Command{
 
 		path := cfg.Env.DefaultFile
 		examplePath := cfg.Env.ExampleFile
-		// invalidKeys := cfg.Env.Example.InvalidKeys
+		invalidKeys := cfg.Env.Example.InvalidKeys
 
 		fmt.Printf("\n[Note] forge env example: review your .env.example before committing — edge cases may apply.\n\n")
-		content, err := env.ParseEnv(path)
+		content, err := env.ParseEnv(path, invalidKeys)
 		if err != nil {
 			return fmt.Errorf("[env example]: could not parse %v: %w", path, err)
 		}

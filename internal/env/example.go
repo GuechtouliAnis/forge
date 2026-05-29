@@ -19,15 +19,31 @@ const (
 	KeyIsLowercase
 )
 
+// InvalidKeysMode controls how ParseEnv handles keys that fail validation.
+// Matches the invalid_keys config field: "warn" | "skip" | "include".
+type InvalidKeysMode string
+
+const (
+	InvalidKeysWarn    InvalidKeysMode = "warn"    // print warning, include in output
+	InvalidKeysSkip    InvalidKeysMode = "skip"    // silently exclude from output
+	InvalidKeysInclude InvalidKeysMode = "include" // include silently, no warning
+)
+
 // ParseEnv reads a .env file and returns a sanitized string suitable for .env.example.
 // Values are stripped from key=value pairs, inline comments are preserved.
 // Warns if duplicate keys are detected.
-func ParseEnv(path string) (string, error) {
-
+// Invalid key handling is governed by cfg.InvalidKeys ("warn" | "skip" | "include").
+func ParseEnv(path, invalidKeys string) (string, error) {
 	data, err := os.ReadFile(path)
 
 	if err != nil {
 		return "", err
+	}
+
+	mode := InvalidKeysMode(invalidKeys)
+	if mode == "" {
+		// Defaults to [warn]
+		mode = InvalidKeysWarn
 	}
 
 	lines := strings.Split(string(data), "\n")
@@ -38,31 +54,49 @@ func ParseEnv(path string) (string, error) {
 	for _, line := range lines {
 		// remove "export " if .env line starts with it
 		line = strings.TrimPrefix(line, "export ")
-		ln := transformLine(line)
 
-		// look for the index in which the first value ends
-		eqIdx := strings.Index(ln, "=")
-		if eqIdx > 0 {
-			key := strings.TrimSpace(ln[:eqIdx])
+		// resolve the key before transforming, to apply invalid_keys logic
+		ln := strings.TrimSpace(line)
+		if ln != "" && !strings.HasPrefix(ln, "#") {
+			eqIdx := strings.Index(line, "=")
+			if eqIdx > 0 {
+				key := strings.TrimSpace(line[:eqIdx])
 
-			// remove comment on "continue" to exclude invalid keys from .env.example
-			switch ValidateKey(key) {
-			case KeyStartsWithDigit:
-				fmt.Printf("[warn] - key starts with digit: %q\n", key)
-				// continue
-			case KeyInvalidChars:
-				fmt.Printf("WARNING: key %q contains invalid characters\n", key)
-				// continue
-			case KeyIsLowercase:
-				fmt.Printf("WARNING: key %q contains lowercase characters\n", key)
-				// continue
+				// ? [WARN] - duplicate key
+				if seen[key] {
+					fmt.Printf("[warn] duplicate key: %q\n", key)
+				}
+				seen[key] = true
+
+				keyCode := ValidateKey(key)
+				if keyCode != KeyValid && keyCode != KeyIsLowercase {
+					// Hard invalid keys (starts with digit, invalid chars)
+					switch mode {
+					case InvalidKeysSkip:
+						continue
+					case InvalidKeysWarn:
+						fmt.Printf("[warn] %s — included in .env.example\n", invalidKeyReason(keyCode, key))
+						// fall through: include despite warning
+					case InvalidKeysInclude:
+						// fall through silently
+					}
+				} else if keyCode == KeyIsLowercase {
+					// Soft invalid (lowercase)
+					switch mode {
+					case InvalidKeysSkip:
+						continue
+					case InvalidKeysWarn:
+						fmt.Printf("[warn] key %q contains lowercase characters\n", key)
+						// include despite warning (same as legacy behavior)
+					case InvalidKeysInclude:
+						// fall through silently
+					}
+				}
 			}
-			if seen[key] {
-				fmt.Printf("WARNING: duplicate key %s\n", key)
-			}
-			seen[key] = true
 		}
-		result = append(result, ln)
+
+		transformed := transformLine(line)
+		result = append(result, transformed)
 	}
 	return strings.Join(result, "\n"), nil
 }
@@ -137,7 +171,7 @@ func transformLine(line string) string {
 		return line
 	}
 
-	// if = not found in line
+	// if "=" not found in line
 	eqIdx := strings.Index(line, "=")
 	if eqIdx < 0 {
 		return ""
@@ -173,24 +207,14 @@ func transformLine(line string) string {
 	return key + "="
 }
 
-// WriteEnvExample writes content to path as a .env.example file.
-// If the file already exists, the user is prompted for confirmation before overwriting.
-func WriteEnvExample(path string, content string) error {
-	_, err := os.Stat(path)
-	if err == nil {
-		var input string
-		fmt.Print(".env.example already exists, overwrite? (y/n): ")
-		fmt.Scan(&input)
-		if strings.ToLower(input) != "y" && strings.ToLower(input) != "yes" {
-			return nil // abort
-		}
+// invalidKeyReason returns a human-readable reason string for a failed key validation code.
+func invalidKeyReason(code int, key string) string {
+	switch code {
+	case KeyStartsWithDigit:
+		return fmt.Sprintf("key %q starts with a digit", key)
+	case KeyInvalidChars:
+		return fmt.Sprintf("key %q contains invalid characters", key)
+	default:
+		return fmt.Sprintf("key %q is invalid", key)
 	}
-
-	return os.WriteFile(path, []byte(content), 0644)
-}
-
-// WriteEnvExampleForce writes content to path as a .env.example file without prompting.
-// Used when the -y flag is passed to forge env.
-func WriteEnvExampleForce(path string, content string) error {
-	return os.WriteFile(path, []byte(content), 0644)
 }

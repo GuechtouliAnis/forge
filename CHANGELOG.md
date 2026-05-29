@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Added
+- `.forge.toml` — added `[ENV.EXAMPLE]` with `invalid_keys` property
+- `forge env example` — `invalid_keys` config option under `[env.example]` — controls handling of invalid keys during `.env.example` generation (`"warn"` | `"skip"` | `"include"`)
+- `InvalidKeysMode` — named type with constants `InvalidKeysWarn`, `InvalidKeysSkip`, `InvalidKeysInclude` in `internal/env`
+- `invalidKeyReason` — helper for human-readable invalid key diagnostics
+
+### Changed
+- `forge env check` — rearrange checks
+- `forge env example` — changed hard coded `.env` name to be parsed in example to support custom file names defined through `.forge.toml`
+- `ParseEnv` — signature now accepts `invalidKeys string` instead of operating without config
+- Invalid key handling replaces old commented-out `continue` blocks with explicit mode-driven branching
+- Duplicate key detection moved inside `ParseEnv` with consistent `[warn]` formatting
+- `EnvExample` — struct added to config with `invalid_keys` field and `"warn"` as default
+
 ## [1.5.1] - 2026-05-16
 
 ### Added
