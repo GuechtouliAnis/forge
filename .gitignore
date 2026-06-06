@@ -16,3 +16,5 @@ Thumbs.db
 PLAN.md
 
 internal/config/templates/template.toml
+
+*.json

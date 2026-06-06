@@ -9,19 +9,19 @@ import (
 func TestCreatePattern(t *testing.T) {
 	tests := []struct {
 		name        string
-		cfg         *config.CommitConfig
+		cfg         *config.GitCommit
 		wantPattern string
 		wantErr     bool
 	}{
 		{
 			name:        "both unset returns empty",
-			cfg:         &config.CommitConfig{},
+			cfg:         &config.GitCommit{},
 			wantPattern: "",
 			wantErr:     false,
 		},
 		{
 			name: "format without placeholders returns as-is",
-			cfg: &config.CommitConfig{
+			cfg: &config.GitCommit{
 				Format: "hello",
 			},
 			wantPattern: "hello",
@@ -29,7 +29,7 @@ func TestCreatePattern(t *testing.T) {
 		},
 		{
 			name: "domain in format with valid domains",
-			cfg: &config.CommitConfig{
+			cfg: &config.GitCommit{
 				Format:  "[{domain}] {message}",
 				Domains: []string{"FIX", "FEAT", "REFACT"},
 			},
@@ -38,7 +38,7 @@ func TestCreatePattern(t *testing.T) {
 		},
 		{
 			name: "domain in format with no valid domains errors",
-			cfg: &config.CommitConfig{
+			cfg: &config.GitCommit{
 				Format:  "[{domain}] {message}",
 				Domains: []string{"", "  "},
 			},
@@ -47,7 +47,7 @@ func TestCreatePattern(t *testing.T) {
 		},
 		{
 			name: "domain in format with blank entries filtered",
-			cfg: &config.CommitConfig{
+			cfg: &config.GitCommit{
 				Format:  "[{domain}]",
 				Domains: []string{"FIX", "", "  ", "FEAT"},
 			},
@@ -56,7 +56,7 @@ func TestCreatePattern(t *testing.T) {
 		},
 		{
 			name: "maxlen with message in format",
-			cfg: &config.CommitConfig{
+			cfg: &config.GitCommit{
 				Format:        "{message}",
 				MessageMaxLen: 50,
 			},
@@ -65,7 +65,7 @@ func TestCreatePattern(t *testing.T) {
 		},
 		{
 			name: "maxlen without message in format is ignored",
-			cfg: &config.CommitConfig{
+			cfg: &config.GitCommit{
 				Format:        "[{domain}]",
 				Domains:       []string{"FIX"},
 				MessageMaxLen: 50,
@@ -75,7 +75,7 @@ func TestCreatePattern(t *testing.T) {
 		},
 		{
 			name: "full format with domain and maxlen",
-			cfg: &config.CommitConfig{
+			cfg: &config.GitCommit{
 				Format:        "[{domain}] {message}",
 				Domains:       []string{"FIX", "FEAT"},
 				MessageMaxLen: 100,
@@ -103,21 +103,21 @@ func TestValidateCommit(t *testing.T) {
 	tests := []struct {
 		name      string
 		message   string
-		cfg       *config.CommitConfig
+		cfg       *config.GitCommit
 		wantValid bool
 		wantErr   bool
 	}{
 		{
 			name:      "no constraints accepts anything",
 			message:   "whatever",
-			cfg:       &config.CommitConfig{},
+			cfg:       &config.GitCommit{},
 			wantValid: true,
 			wantErr:   false,
 		},
 		{
 			name:    "valid domain and message",
 			message: "[FIX] correct commit",
-			cfg: &config.CommitConfig{
+			cfg: &config.GitCommit{
 				Format:        "[{domain}] {message}",
 				Domains:       []string{"FIX", "FEAT"},
 				MessageMaxLen: 100,
@@ -128,7 +128,7 @@ func TestValidateCommit(t *testing.T) {
 		{
 			name:    "invalid domain rejected",
 			message: "[CHORE] something",
-			cfg: &config.CommitConfig{
+			cfg: &config.GitCommit{
 				Format:  "[{domain}] {message}",
 				Domains: []string{"FIX", "FEAT"},
 			},
@@ -138,7 +138,7 @@ func TestValidateCommit(t *testing.T) {
 		{
 			name:    "message exceeds maxlen",
 			message: "this message is way too long and should be rejected by the validator",
-			cfg: &config.CommitConfig{
+			cfg: &config.GitCommit{
 				Format:        "{message}",
 				MessageMaxLen: 20,
 			},
@@ -148,7 +148,7 @@ func TestValidateCommit(t *testing.T) {
 		{
 			name:    "message within maxlen",
 			message: "short message",
-			cfg: &config.CommitConfig{
+			cfg: &config.GitCommit{
 				Format:        "{message}",
 				MessageMaxLen: 20,
 			},
@@ -158,7 +158,7 @@ func TestValidateCommit(t *testing.T) {
 		{
 			name:    "missing domain errors on pattern build",
 			message: "[FIX] something",
-			cfg: &config.CommitConfig{
+			cfg: &config.GitCommit{
 				Format:  "[{domain}] {message}",
 				Domains: []string{},
 			},

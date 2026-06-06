@@ -11,7 +11,7 @@ import (
 // CreatePattern builds a regex pattern from the commit config.
 // Returns an empty string if no constraints are defined (both format and
 // message_max_length are unset), meaning validation is skipped entirely.
-func CreatePattern(cfg *config.CommitConfig) (string, error) {
+func CreatePattern(cfg *config.GitCommit) (string, error) {
 	// Both fields at zero-value means the user opted out of commit validation.
 	if strings.TrimSpace(cfg.Format) == "" && cfg.MessageMaxLen == 0 {
 		return "", nil
@@ -60,7 +60,7 @@ func CreatePattern(cfg *config.CommitConfig) (string, error) {
 // ValidateCommit checks whether the given commit message satisfies the
 // constraints defined in the config. If no pattern can be built (both format
 // and max length unset), validation is skipped and the message is accepted.
-func ValidateCommit(message string, cfg *config.CommitConfig) (bool, error) {
+func ValidateCommit(message string, cfg *config.GitCommit) (bool, error) {
 	pattern, err := CreatePattern(cfg)
 	if err != nil {
 		return false, fmt.Errorf("failed to build commit pattern: %w", err)

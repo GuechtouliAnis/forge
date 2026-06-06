@@ -36,25 +36,38 @@ type EnvExample struct {
 
 // GIT
 type GitConfig struct {
-	Commit CommitConfig `toml:"commit"`
-	Clean  CleanConfig  `toml:"clean"`
+	Commit GitCommit `toml:"commit"`
+	Clean  GitClean  `toml:"clean"`
+	Add    GitAdd    `toml:"add"`
+}
+
+// GIT ADD
+type GitAdd struct {
+	MaxFileSize         int    `toml:"max_file_size_mb"`
+	OnFileSizeViolation string `toml:"on_file_size_violation"`
 }
 
 // GIT COMMIT
-type CommitConfig struct {
+type GitCommit struct {
 	Format        string   `toml:"format"`
 	Domains       []string `toml:"domain"`
 	MessageMaxLen int      `toml:"message_max_length"`
 }
 
 // GIT CLEAN
-type CleanConfig struct {
+type GitClean struct {
 	StaleDays     int `toml:"stale_days"`
 	CommitsBehind int `toml:"commits_behind"`
 }
 
 func defaults() *Config {
 	return &Config{
+		Git: GitConfig{
+			Add: GitAdd{
+				MaxFileSize:         -1,
+				OnFileSizeViolation: "warn",
+			},
+		},
 		Env: EnvConfig{
 			DefaultFile: ".env",
 			ExampleFile: ".env.example",

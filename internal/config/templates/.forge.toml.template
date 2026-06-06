@@ -51,6 +51,24 @@ max_consecutive_blanks = 1
 invalid_keys = "warn"   # "warn" | "skip" | "include"
 
 
+# ——— GIT ——————————————————————————————————————————————————————————————————————
+[git]
+username = ""
+email = ""
+default_branch = "main"
+
+
+# ——— GIT ADD ——————————————————————————————————————————————————————————————————
+[git.add]
+# Maximum file size allowed to be staged with forge git add in megabytes
+# Set to -1 to disable
+max_file_size_mb = 10
+
+# Defines the behaviour of forge git add when a file exceeding
+# "max_file_size_mb" is about to be staged
+on_file_size_violation = "warn" # "warn" | "skip" | "fail"
+
+
 # ——— GIT CLEAN ————————————————————————————————————————————————————————————————
 [git.clean]
 # Days since last commit before a branch is considered dusty.
