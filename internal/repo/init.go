@@ -59,19 +59,13 @@ func CreateRepo(path string, lang string, license string) error {
 	}
 
 	// safety check — abort if .env is staged, meaning gitignore didn't catch it
-	out, err := exec.Command("git", "-C", path, "ls-files", "--others", "--exclude-standard", ".env").Output()
+	out, err := exec.Command("git", "-C", path, "ls-files", "--cached", ".env").Output()
 	if err == nil && strings.TrimSpace(string(out)) != "" {
-		return fmt.Errorf("aborting commit: .env is not ignored — check your .gitignore")
+		// unstage everything and bail
+		_ = exec.Command("git", "-C", path, "reset", "HEAD", ".").Run()
+		return fmt.Errorf("aborting: .env is staged — check your .gitignore")
 	}
 
-	// initial commit — marks the scaffold baseline
-	gc = exec.Command("git", "-C", path, "commit", "-m", "[INIT] forge repo init")
-	gc.Stdout = os.Stdout
-	gc.Stderr = os.Stderr
-	if err := gc.Run(); err != nil {
-		return fmt.Errorf("git commit failed: %w", err)
-	}
-
-	fmt.Printf("Initialized repo in %s\n", path)
+	fmt.Printf("Initialized and staged repo in %s\n", path)
 	return nil
 }
