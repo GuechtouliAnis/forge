@@ -24,6 +24,7 @@ func CreateForgeToml(path string) error {
 		path = cwd
 	}
 
+	// validate that given path exists
 	info, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -31,10 +32,13 @@ func CreateForgeToml(path string) error {
 		}
 		return fmt.Errorf("[config new]: %w", err)
 	}
+
+	// validates that the given path is a directory
 	if !info.IsDir() {
 		return fmt.Errorf("[config new]: path is not a directory: %s", path)
 	}
 
+	// check if .forge.toml file exist
 	exists, err := repo.CheckFileExists(path, ".forge.toml")
 	if err != nil {
 		return fmt.Errorf("[config new]: %w", err)
@@ -59,13 +63,16 @@ func CreateForgeToml(path string) error {
 		}
 	}
 
+	// destination path
 	dest := filepath.Join(path, ".forge.toml")
+	// write the actual file
 	if err := os.WriteFile(dest, []byte(tomlFile), 0644); err != nil {
 		return fmt.Errorf("[config new]: %w", err)
 	}
 
-	fmt.Println("[config new]: .forge.toml created.")
+	fmt.Printf("[config new]: .forge.toml created at %s.\n", dest)
 
+	// check if forge is in repo root
 	gitPath := filepath.Join(path, ".git")
 	if info, err := os.Stat(gitPath); err != nil || !info.IsDir() {
 		fmt.Println("Tip: .forge.toml works best at your repo root, alongside .git/")

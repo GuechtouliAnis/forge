@@ -5,6 +5,7 @@ type Config struct {
 	Env EnvConfig `toml:"env"`
 }
 
+// === ENV ===
 // ENV
 type EnvConfig struct {
 	DefaultFile string `toml:"default_file"`
@@ -34,6 +35,7 @@ type EnvExample struct {
 	InvalidKeys string `toml:"invalid_keys"`
 }
 
+// === GIT ===
 // GIT
 type GitConfig struct {
 	Commit GitCommit `toml:"commit"`
@@ -60,14 +62,19 @@ type GitClean struct {
 	CommitsBehind int `toml:"commits_behind"`
 }
 
+// === DEFAULT VALUES ===
 func defaults() *Config {
 	return &Config{
+
+		// GIT
 		Git: GitConfig{
 			Add: GitAdd{
 				MaxFileSize:         -1,
 				OnFileSizeViolation: "warn",
 			},
 		},
+
+		// ENV
 		Env: EnvConfig{
 			DefaultFile: ".env",
 			ExampleFile: ".env.example",

@@ -147,7 +147,7 @@ forge git restore  --force          # overwrite dirty or ignored files without p
 
 **Using Go:**
 ```bash
-go install github.com/GuechtouliAnis/forge@v1.5.1
+go install github.com/GuechtouliAnis/forge@v1.6.0
 ```
 > Ensure `$(go env GOPATH)/bin` is in your `PATH`. On most systems this is `~/go/bin`.
 

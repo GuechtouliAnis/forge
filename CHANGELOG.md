@@ -2,11 +2,14 @@
 
 ## [Unreleased]
 
+## [1.6.0]
+
 ### Added
 - `.forge.toml` — added `[ENV.EXAMPLE]` with `invalid_keys` property
 - `forge env example` — `invalid_keys` config option under `[env.example]` — controls handling of invalid keys during `.env.example` generation (`"warn"` | `"skip"` | `"include"`)
 - `InvalidKeysMode` — named type with constants `InvalidKeysWarn`, `InvalidKeysSkip`, `InvalidKeysInclude` in `internal/env`
 - `invalidKeyReason` — helper for human-readable invalid key diagnostics
+- `forge config` — Added `GitAdd` struct that will hold config of `forge git add`
 
 ### Changed
 - `forge env check` — rearrange checks
@@ -15,6 +18,8 @@
 - Invalid key handling replaces old commented-out `continue` blocks with explicit mode-driven branching
 - Duplicate key detection moved inside `ParseEnv` with consistent `[warn]` formatting
 - `EnvExample` — struct added to config with `invalid_keys` field and `"warn"` as default
+- `forge git commit` — Renamed `CommitConfig` to `GitCommit` and `CleanConfig` to `GitClean`
+- `forge repo init` — the command now stages added files and does not commit them
 
 ### Removed
 - `forge env init` — removed; insufficient standalone value over `cp .env.example .env`
