@@ -6,13 +6,20 @@
 - `git.clean.fetch_remote` config option (`.forge.toml`) to control whether `forge git clean` runs `git fetch --prune` before evaluating branches. Defaults to `true`.
 - `--offline` flag on `forge git clean` to skip the fetch for a single invocation, regardless of `fetch_remote`.
 - Local-only diagnosis path for `forge git clean`: when fetch is skipped or fails, branch evaluation now falls back to existing local refs and reports the age of the last successful fetch (via `.git/FETCH_HEAD`).
+- `forge env add` now prints a preset table (name + keys) when called with no flags, instead of silently doing nothing.
+- `forge env add --<preset> -h` now prints the keys that preset would append, instead of falling back to generic usage text.
+- `AddEnv` now prints a success message on completion reporting how many variables were appended and to which file.
+
+### Changed
+- `env` package exposes `PresetKeys(name string) ([]string, bool)` for preset lookup outside the package.
+- `envAddCmd` help output now routes through `cmd.Printf`/`cmd.Println` instead of `fmt`, consistent with cobra output conventions
 
 ### Fixed
 - `forge git clean` no longer aborts with a fatal error when `git fetch --prune` fails (e.g. expired credentials, no network). The failure is now a warning, and the command proceeds using local refs.
 - `stale_days = 0` and `commits_behind = 0` in `.forge.toml` now correctly disable their respective detection axis, as documented, instead of matching every branch.
 - `config.defaults()` now sets `StaleDays: 30` and `CommitsBehind: 10` for `git.clean`, matching the CLI flag defaults. Previously these were left unset, so projects without a `.forge.toml` silently ran with age/behind detection disabled.
 
-## [1.6.0]
+## [1.6.0] - 2026-07-10
 
 ### Added
 - `.forge.toml` — added `[ENV.EXAMPLE]` with `invalid_keys` property

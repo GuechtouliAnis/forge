@@ -1,8 +1,6 @@
 package cmdenv
 
 import (
-	"fmt"
-
 	"github.com/GuechtouliAnis/forge/internal/env"
 	"github.com/spf13/cobra"
 )
@@ -50,7 +48,8 @@ var envAddCmd = &cobra.Command{
 		}
 
 		if len(selected) == 0 {
-			return fmt.Errorf("[env add]: no preset flag provided — use --db, --ai, --web, --redis, --monitoring, or --neo4j")
+			env.PrintPresetTable()
+			return nil
 		}
 
 		return env.AddEnv(path, selected)
@@ -64,5 +63,26 @@ func init() {
 	envAddCmd.Flags().BoolVar(&envAddRedis, "redis", false, "append Redis variables")
 	envAddCmd.Flags().BoolVar(&envAddMonitoring, "monitoring", false, "append Grafana/Prometheus variables")
 	envAddCmd.Flags().BoolVar(&envAddNeo4j, "neo4j", false, "append Neo4j variables")
+
+	envAddCmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+		presetFlags := []string{"db", "ai", "web", "redis", "monitoring", "neo4j"}
+		for _, name := range presetFlags {
+			if cmd.Flags().Changed(name) {
+				keys, ok := env.PresetKeys(name)
+				if !ok {
+					continue
+				}
+				cmd.Printf("--%s would append:\n", name)
+				for _, k := range keys {
+					cmd.Printf("  %s\n", k)
+				}
+				return
+			}
+		}
+		// no preset flag set — fall back to standard help
+		cmd.Println(cmd.Long)
+		cmd.Println(cmd.UsageString())
+	})
+
 	envCmd.AddCommand(envAddCmd)
 }

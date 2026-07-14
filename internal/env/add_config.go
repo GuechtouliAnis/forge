@@ -1,5 +1,12 @@
 package env
 
+import (
+	"fmt"
+	"os"
+	"strings"
+	"text/tabwriter"
+)
+
 // Predefined variable sets for forge env add
 var presets = map[string][]string{
 	"db": {
@@ -52,4 +59,21 @@ var hostVars = map[string]string{
 	"REDIS_PORT":      "6379",
 	"GRAFANA_PORT":    "3000",
 	"PROMETHEUS_PORT": "9090",
+}
+
+// PrintPresetTable displays every available preset and the keys it would append.
+func PrintPresetTable() {
+	w := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
+	fmt.Fprintln(w, "PRESET\tKEYS")
+	for name, keys := range presets {
+		fmt.Fprintf(w, "--%s\t%s\n", name, strings.Join(keys, ", "))
+	}
+	w.Flush()
+}
+
+// PresetKeys returns the variable keys for a given preset name,
+// and whether that preset exists.
+func PresetKeys(name string) ([]string, bool) {
+	keys, ok := presets[name]
+	return keys, ok
 }

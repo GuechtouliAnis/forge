@@ -108,5 +108,6 @@ func AddEnv(path string, selected []string) error {
 		fmt.Fprintln(w, e.key+"="+e.value)
 	}
 
+	fmt.Printf("added %d variable(s) to %s\n", len(toWrite), path)
 	return nil
 }
