@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/GuechtouliAnis/forge/internal/config"
 )
 
 // BranchInfo holds metadata about a branch collected during the clean pass.
@@ -21,7 +23,12 @@ type BranchInfo struct {
 
 // CleanGit scans local branches and suggests or removes stale ones.
 // Dry-run is the default — --remove triggers deletion with confirmation, --force skips it.
-func CleanGit(days int, behind int, remove bool, force bool) error {
+func CleanGit(cfg config.GitClean, remove bool, force bool, offlineFlag bool) error {
+	offline := offlineFlag || !cfg.FetchRemote
+
+	days := cfg.StaleDays
+	behind := cfg.CommitsBehind
+
 	// pre-flight: confirm we're in a git repo
 	if err := exec.Command("git", "rev-parse", "--is-inside-work-tree").Run(); err != nil {
 		return fmt.Errorf("not a git repository")
@@ -41,18 +48,33 @@ func CleanGit(days int, behind int, remove bool, force bool) error {
 		return fmt.Errorf("git 2.0+ required, found: %s", verStr)
 	}
 
-	// Synchronize with the remote and remove local references to branches that no longer exist on the server
-	fetch := exec.Command("git", "fetch", "--prune")
-
-	// Redirect git's output and errors directly to the terminal so the user sees real-time progress
-	fetch.Stdout = os.Stdout
-	fetch.Stderr = os.Stderr
-	if err := fetch.Run(); err != nil {
-		return fmt.Errorf("git fetch --prune failed: %w", err)
+	// Synchronize with the remote and remove local references to branches that no longer exist on the server.
+	// This is skipped entirely when fetch_remote=false or --offline is passed. If a fetch is attempted and
+	// fails, it is treated as non-fatal: we fall back to local-only diagnosis using existing refs.
+	if !offline {
+		fetch := exec.Command("git", "fetch", "--prune")
+		fetch.Stdout = os.Stdout
+		fetch.Stderr = os.Stderr
+		if err := fetch.Run(); err != nil {
+			fmt.Printf("Warning: git fetch --prune failed (%v).\n", err)
+			fmt.Println("This failed, doing local diagnosis only — results reflect the last successful fetch and may be stale.")
+			offline = true
+		}
+	} else {
+		fmt.Println("fetch_remote is disabled — doing local diagnosis only.")
 	}
 
 	// identify default branch
 	defaultBranch := defaultBranch()
+
+	if offline {
+		if info, err := os.Stat(".git/FETCH_HEAD"); err == nil {
+			fmt.Printf("Last successful fetch: %s ago.\n\n", time.Since(info.ModTime()).Round(time.Minute))
+		} else {
+			fmt.Println("No record of a prior successful fetch — remote-tracking data may be unreliable.")
+			fmt.Println()
+		}
+	}
 
 	// identify current branch — protect from self-deletion
 	currentOut, err := exec.Command("git", "branch", "--show-current").Output()
@@ -128,6 +150,11 @@ func CleanGit(days int, behind int, remove bool, force bool) error {
 	fmt.Printf("\n%-30s %-10s %-10s %-10s %s\n", "BRANCH", "DAYS OLD", "BEHIND", "MERGED", "STATUS")
 	fmt.Println(strings.Repeat("-", 75))
 
+	// Age/behind detection can each be individually disabled by setting the
+	// corresponding config value to 0 (per the TOML doc comments).
+	ageEnabled := days > 0
+	behindEnabled := behind > 0
+
 	var toDelete []BranchInfo
 	for _, b := range stale {
 		switch {
@@ -135,7 +162,7 @@ func CleanGit(days int, behind int, remove bool, force bool) error {
 			fmt.Printf("%-30s %-10s %-10s %-10s %s\n", b.Name, "-", "-", "-", "[PROTECTED]")
 		case b.Current:
 			fmt.Printf("%-30s %-10s %-10s %-10s %s\n", b.Name, "-", "-", "-", "[CURRENT — skipped]")
-		case b.DaysOld >= days || b.Behind >= behind:
+		case (ageEnabled && b.DaysOld >= days) || (behindEnabled && b.Behind >= behind):
 			status := "[TO BE DELETED]"
 			if !remove {
 				status = "[STALE]"

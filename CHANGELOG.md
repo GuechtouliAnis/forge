@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+- `git.clean.fetch_remote` config option (`.forge.toml`) to control whether `forge git clean` runs `git fetch --prune` before evaluating branches. Defaults to `true`.
+- `--offline` flag on `forge git clean` to skip the fetch for a single invocation, regardless of `fetch_remote`.
+- Local-only diagnosis path for `forge git clean`: when fetch is skipped or fails, branch evaluation now falls back to existing local refs and reports the age of the last successful fetch (via `.git/FETCH_HEAD`).
+
+### Fixed
+- `forge git clean` no longer aborts with a fatal error when `git fetch --prune` fails (e.g. expired credentials, no network). The failure is now a warning, and the command proceeds using local refs.
+- `stale_days = 0` and `commits_behind = 0` in `.forge.toml` now correctly disable their respective detection axis, as documented, instead of matching every branch.
+- `config.defaults()` now sets `StaleDays: 30` and `CommitsBehind: 10` for `git.clean`, matching the CLI flag defaults. Previously these were left unset, so projects without a `.forge.toml` silently ran with age/behind detection disabled.
+
 ## [1.6.0]
 
 ### Added

@@ -61,6 +61,8 @@ stale_days = 30
 # Set to 0 to disable behind-count detection.
 commits_behind = 10
 
+fetch_remote = false
+
 
 # ——— GIT COMMIT ——————————————————————————————————————————————————————————————
 [git.commit]

@@ -31,22 +31,32 @@ main, master, and the default branch are always protected.`,
 		behind, _ := cmd.Flags().GetInt("behind")
 		remove, _ := cmd.Flags().GetBool("remove")
 		force, _ := cmd.Flags().GetBool("force")
+		offline, _ := cmd.Flags().GetBool("offline")
 
-		if !cmd.Flags().Changed("days") && cfg.Git.Clean.StaleDays > 0 {
+		// 0 is a meaningful, intentional value (disables that detection axis),
+		// so once we know the flag wasn't explicitly set, trust the config value as-is.
+		if !cmd.Flags().Changed("days") {
 			days = cfg.Git.Clean.StaleDays
 		}
-		if !cmd.Flags().Changed("behind") && cfg.Git.Clean.CommitsBehind > 0 {
+		if !cmd.Flags().Changed("behind") {
 			behind = cfg.Git.Clean.CommitsBehind
 		}
 
-		return git.CleanGit(days, behind, remove, force)
+		cleanCfg := config.GitClean{
+			StaleDays:     days,
+			CommitsBehind: behind,
+			FetchRemote:   cfg.Git.Clean.FetchRemote,
+		}
+
+		return git.CleanGit(cleanCfg, remove, force, offline)
 	},
 }
 
 func init() {
-	gitCleanCmd.Flags().Int("days", 30, "days since last commit before branch is considered stale")
-	gitCleanCmd.Flags().Int("behind", 10, "commits behind base before branch is considered stale")
+	gitCleanCmd.Flags().Int("days", 30, "days since last commit before branch is considered stale (0 disables)")
+	gitCleanCmd.Flags().Int("behind", 10, "commits behind base before branch is considered stale (0 disables)")
 	gitCleanCmd.Flags().Bool("remove", false, "show branches to delete and prompt for confirmation")
 	gitCleanCmd.Flags().Bool("force", false, "delete without confirmation (use with --remove)")
+	gitCleanCmd.Flags().Bool("offline", false, "skip git fetch and diagnose using local refs only, overriding fetch_remote")
 	gitCmd.AddCommand(gitCleanCmd)
 }

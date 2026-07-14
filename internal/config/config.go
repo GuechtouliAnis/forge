@@ -58,8 +58,9 @@ type GitCommit struct {
 
 // GIT CLEAN
 type GitClean struct {
-	StaleDays     int `toml:"stale_days"`
-	CommitsBehind int `toml:"commits_behind"`
+	StaleDays     int  `toml:"stale_days"`
+	CommitsBehind int  `toml:"commits_behind"`
+	FetchRemote   bool `toml:"fetch_remote"`
 }
 
 // === DEFAULT VALUES ===
@@ -71,6 +72,9 @@ func defaults() *Config {
 			Add: GitAdd{
 				MaxFileSize:         -1,
 				OnFileSizeViolation: "warn",
+			},
+			Clean: GitClean{
+				FetchRemote: true,
 			},
 		},
 

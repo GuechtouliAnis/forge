@@ -79,6 +79,11 @@ stale_days = 30
 # Set to 0 to disable behind-count detection.
 commits_behind = 10
 
+# Whether to run `git fetch --prune` before evaluating branches.
+# Set to false to always operate on local refs only, without touching the network.
+# If true and the fetch fails, forge falls back to local diagnosis automatically.
+fetch_remote = true
+
 
 # ——— GIT COMMIT ———————————————————————————————————————————————————————————————
 [git.commit]
