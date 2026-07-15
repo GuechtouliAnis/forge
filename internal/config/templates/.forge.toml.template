@@ -79,10 +79,13 @@ stale_days = 30
 # Set to 0 to disable behind-count detection.
 commits_behind = 10
 
-# Whether to run `git fetch --prune` before evaluating branches.
-# Set to false to always operate on local refs only, without touching the network.
-# If true and the fetch fails, forge falls back to local diagnosis automatically.
+# Synchronize with the remote repository before evaluating branches.
+# Set to false to perform a local-only diagnosis (faster, but may rely on outdated refs).
 fetch_remote = true
+
+# The maximum number of concurrent workers used to evaluate branches.
+# Higher values speed up evaluation on large repositories but consume more system resources.
+max_workers = 8
 
 
 # ——— GIT COMMIT ———————————————————————————————————————————————————————————————

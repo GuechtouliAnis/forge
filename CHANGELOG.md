@@ -9,15 +9,24 @@
 - `forge env add` now prints a preset table (name + keys) when called with no flags, instead of silently doing nothing.
 - `forge env add --<preset> -h` now prints the keys that preset would append, instead of falling back to generic usage text.
 - `AddEnv` now prints a success message on completion reporting how many variables were appended and to which file.
+- `git.clean.fetch_timeout_seconds` config option to bound `git fetch --prune` with a timeout (default 30s), preventing an indefinite hang on network stalls or credential prompts.
+- `git.clean.max_workers` config option to override the branch-evaluation worker pool size; auto-detected from CPU count and file descriptor limits when unset.
+- Concurrent "commits behind" evaluation for `forge git clean`, bounded by a dynamically sized worker pool.
 
 ### Changed
 - `env` package exposes `PresetKeys(name string) ([]string, bool)` for preset lookup outside the package.
 - `envAddCmd` help output now routes through `cmd.Printf`/`cmd.Println` instead of `fmt`, consistent with cobra output conventions
+- `forge git clean` batches branch discovery, age, and merged-status queries into three `git` calls total instead of three per branch (`for-each-ref`, `branch --merged`), keeping only the "commits behind" check per-branch.
+- `git fetch --prune` now sets `GIT_TERMINAL_PROMPT=0` to fail fast instead of blocking on an interactive credential prompt.
+- `forge git clean` internals split across `clean.go`, `clean_git.go`, and `clean_workers.go` for readability.
+- Error messages in `git clean` prefixed with `[git clean]:` for consistency with other subcommands.
 
 ### Fixed
 - `forge git clean` no longer aborts with a fatal error when `git fetch --prune` fails (e.g. expired credentials, no network). The failure is now a warning, and the command proceeds using local refs.
 - `stale_days = 0` and `commits_behind = 0` in `.forge.toml` now correctly disable their respective detection axis, as documented, instead of matching every branch.
 - `config.defaults()` now sets `StaleDays: 30` and `CommitsBehind: 10` for `git.clean`, matching the CLI flag defaults. Previously these were left unset, so projects without a `.forge.toml` silently ran with age/behind detection disabled.
+- BEHIND column in `forge git clean` output now shows `-` instead of a misleading `0` when `commits_behind` is disabled.
+- Branch names containing `|` no longer break `forge git clean` parsing (switched to NUL-delimited `for-each-ref` output).
 
 ## [1.6.0] - 2026-07-10
 

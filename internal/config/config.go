@@ -58,9 +58,11 @@ type GitCommit struct {
 
 // GIT CLEAN
 type GitClean struct {
-	StaleDays     int  `toml:"stale_days"`
-	CommitsBehind int  `toml:"commits_behind"`
-	FetchRemote   bool `toml:"fetch_remote"`
+	StaleDays           int  `toml:"stale_days"`
+	CommitsBehind       int  `toml:"commits_behind"`
+	FetchRemote         bool `toml:"fetch_remote"`
+	MaxWorkers          int  `toml:"max_workers"`
+	FetchTimeoutSeconds int  `toml:"fetch_timeout"`
 }
 
 // === DEFAULT VALUES ===
@@ -75,6 +77,7 @@ func defaults() *Config {
 			},
 			Clean: GitClean{
 				FetchRemote: true,
+				MaxWorkers:  0,
 			},
 		},
 
