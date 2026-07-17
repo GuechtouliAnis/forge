@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-07-17
+
 ### Added
 - `git.clean.fetch_remote` config option (`.forge.toml`) to control whether `forge git clean` runs `git fetch --prune` before evaluating branches. Defaults to `true`.
 - `--offline` flag on `forge git clean` to skip the fetch for a single invocation, regardless of `fetch_remote`.
@@ -14,12 +16,15 @@
 - Concurrent "commits behind" evaluation for `forge git clean`, bounded by a dynamically sized worker pool.
 
 ### Changed
-- `env` package exposes `PresetKeys(name string) ([]string, bool)` for preset lookup outside the package.
-- `envAddCmd` help output now routes through `cmd.Printf`/`cmd.Println` instead of `fmt`, consistent with cobra output conventions
+- `forge git clean` branch deletion loop now explicitly guards unmerged branches; they are safely skipped with a warning unless the `--force` flag is actively passed to authorize a force-delete (`-D`).
+- Improved the offline fetch age readout to dynamically format into hours and minutes (`1h15m ago`) if the last sync occurred over an hour ago, replacing the raw minute-only formatting.
+- Refactored core branch loop iteration variables (`name`, `tsStr`, `ts`) to self-documenting equivalents (`branchName`, `timestampString`, `lastCommitTimestamp`) to improve long-term maintainability.
+- `env package` exposes `PresetKeys(name string) ([]string, bool)` for preset lookup outside the package.
+- `envAddCmd` help output now routes through `cmd.Printf`/`cmd.Println` instead of `fmt`, consistent with cobra output conventions.
 - `forge git clean` batches branch discovery, age, and merged-status queries into three `git` calls total instead of three per branch (`for-each-ref`, `branch --merged`), keeping only the "commits behind" check per-branch.
 - `git fetch --prune` now sets `GIT_TERMINAL_PROMPT=0` to fail fast instead of blocking on an interactive credential prompt.
 - `forge git clean` internals split across `clean.go`, `clean_git.go`, and `clean_workers.go` for readability.
-- Error messages in `git clean` prefixed with `[git clean]:` for consistency with other subcommands.
+- Error and status messages in `git clean` systematically prefixed with `[git clean]:` for cleaner visual tracing and subcommand consistency.
 
 ### Fixed
 - `forge git clean` no longer aborts with a fatal error when `git fetch --prune` fails (e.g. expired credentials, no network). The failure is now a warning, and the command proceeds using local refs.

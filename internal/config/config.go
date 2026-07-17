@@ -58,11 +58,12 @@ type GitCommit struct {
 
 // GIT CLEAN
 type GitClean struct {
-	StaleDays           int  `toml:"stale_days"`
-	CommitsBehind       int  `toml:"commits_behind"`
-	FetchRemote         bool `toml:"fetch_remote"`
-	MaxWorkers          int  `toml:"max_workers"`
-	FetchTimeoutSeconds int  `toml:"fetch_timeout"`
+	StaleDays           int      `toml:"stale_days"`
+	CommitsBehind       int      `toml:"commits_behind"`
+	FetchRemote         bool     `toml:"fetch_remote"`
+	FetchTimeoutSeconds int      `toml:"fetch_timeout"`
+	MaxWorkers          int      `toml:"max_workers"`
+	ProtectedBranches   []string `toml:"protected_branches"`
 }
 
 // === DEFAULT VALUES ===
@@ -76,8 +77,9 @@ func defaults() *Config {
 				OnFileSizeViolation: "warn",
 			},
 			Clean: GitClean{
-				FetchRemote: true,
-				MaxWorkers:  0,
+				FetchRemote:         true,
+				FetchTimeoutSeconds: 30,
+				MaxWorkers:          0,
 			},
 		},
 

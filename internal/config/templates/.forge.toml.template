@@ -83,9 +83,17 @@ commits_behind = 10
 # Set to false to perform a local-only diagnosis (faster, but may rely on outdated refs).
 fetch_remote = true
 
+# The maximum time in seconds to wait for a remote repository fetch to complete.
+# Prevents the command from hanging indefinitely on slow or unresponsive connections.
+fetch_timeout = 30
+
 # The maximum number of concurrent workers used to evaluate branches.
 # Higher values speed up evaluation on large repositories but consume more system resources.
 max_workers = 8
+
+# List of additional local branches that should always be shielded from deletion.
+# Note: 'main', 'master', and the repository's default branch are always protected automatically.
+protected_branches = ["dev"]
 
 
 # ——— GIT COMMIT ———————————————————————————————————————————————————————————————

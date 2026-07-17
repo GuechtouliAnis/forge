@@ -51,7 +51,7 @@ max_consecutive_blanks = 2
 invalid_keys = "warn"   # "warn" | "skip" | "include"
 
 
-# ——— GIT CLEAN ———————————————————————————————————————————————————————————————
+# ——— GIT CLEAN ————————————————————————————————————————————————————————————————
 [git.clean]
 # Days since last commit before a branch is considered dusty.
 # Set to 0 to disable age-based detection.
@@ -63,11 +63,19 @@ commits_behind = 10
 
 # Synchronize with the remote repository before evaluating branches.
 # Set to false to perform a local-only diagnosis (faster, but may rely on outdated refs).
-fetch_remote = true
+fetch_remote = false
+
+# The maximum time in seconds to wait for a remote repository fetch to complete.
+# Prevents the command from hanging indefinitely on slow or unresponsive connections.
+fetch_timeout = 30
 
 # The maximum number of concurrent workers used to evaluate branches.
 # Higher values speed up evaluation on large repositories but consume more system resources.
 max_workers = 8
+
+# List of additional local branches that should always be shielded from deletion.
+# Note: 'main', 'master', and the repository's default branch are always protected automatically.
+protected_branches = []
 
 
 # ——— GIT COMMIT ——————————————————————————————————————————————————————————————
