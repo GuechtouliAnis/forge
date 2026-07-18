@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+- `forge git add` command: wraps `git add` with a guardrail pipeline applied to every file before it reaches the index.
+- `.env` and the configured `env.default_file` are unconditionally rejected by `forge git add`, regardless of `blocklist_patterns` or how the file is named on the command line.
+- `git.add.blocklist_patterns` config option (`.forge.toml`) for glob-pattern rejection of sensitive files (e.g. `*.pem`, `id_rsa`), matched case-insensitively against each file's base name.
+- `git.add.max_file_size_mb` config option to flag oversized files before staging. Defaults to `10`; set to `-1` to disable.
+- `git.add.on_file_size_violation` config option to control oversized-file handling: `warn` (stage anyway, print a warning), `skip` (leave unstaged), or `fail` (abort the run).
+- `--dry-run` / `-d` flag on `forge git add` to preview staged/blocked/skipped decisions without touching the index.
+- `forge git add` path resolution distinguishes explicitly-named files from directory arguments: named files are always evaluated regardless of `.gitignore` status, so files like `.env` cannot bypass guardrails by being ignored; directory arguments are expanded via `git status --porcelain`, scoped to files with genuine unstaged or untracked changes.
+
+
 ## [1.7.0] - 2026-07-17
 
 ### Added

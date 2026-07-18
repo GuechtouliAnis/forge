@@ -68,6 +68,12 @@ max_file_size_mb = 10
 # "max_file_size_mb" is about to be staged
 on_file_size_violation = "warn" # "warn" | "skip" | "fail"
 
+# Glob patterns matched (case-insensitively) against each file's base name;
+# matching files are always blocked from staging, regardless of size.
+# Note: .env and env.default_file are unconditionally rejected and are not
+# part of this list — they cannot be added here or removed from rejection.
+blocklist_patterns = []
+
 
 # ——— GIT CLEAN ————————————————————————————————————————————————————————————————
 [git.clean]

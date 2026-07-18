@@ -45,8 +45,9 @@ type GitConfig struct {
 
 // GIT ADD
 type GitAdd struct {
-	MaxFileSize         int    `toml:"max_file_size_mb"`
-	OnFileSizeViolation string `toml:"on_file_size_violation"`
+	MaxFileSize         int      `toml:"max_file_size_mb"`
+	OnFileSizeViolation string   `toml:"on_file_size_violation"`
+	BlocklistPatterns   []string `toml:"blocklist_patterns"`
 }
 
 // GIT COMMIT
