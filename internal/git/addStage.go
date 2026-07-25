@@ -13,7 +13,9 @@ import (
 // permissions issue) should never prevent the rest of the batch from being
 // staged, matching CleanGit's per-branch-failure tolerance during deletion.
 func stageFiles(ctx context.Context, files []fileResult) (staged, failed int) {
+
 	for _, f := range files {
+
 		if ctx.Err() != nil {
 			fmt.Println("\n[git add]: Interrupted — remaining files were not staged.")
 			break
@@ -35,9 +37,11 @@ func stageFiles(ctx context.Context, files []fileResult) (staged, failed int) {
 // combined output as the error text on failure so the caller can surface a
 // precise, per-file reason rather than a generic failure message.
 func gitAddFile(ctx context.Context, path string) error {
+
 	out, err := exec.CommandContext(ctx, "git", "add", path).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("%s", strings.TrimSpace(string(out)))
 	}
+
 	return nil
 }

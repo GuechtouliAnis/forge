@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,26 +21,6 @@ func defaultBranch(ctx context.Context) string {
 		}
 	}
 	return "main"
-}
-
-// gitCheck performs pre-flight validation: confirms we're inside a git
-// repository and that the installed git version meets the minimum requirement.
-func gitCheck(ctx context.Context) error {
-	if err := exec.CommandContext(ctx, "git", "rev-parse", "--is-inside-work-tree").Run(); err != nil {
-		return fmt.Errorf("[git clean]: not a git repository")
-	}
-
-	verOut, err := exec.CommandContext(ctx, "git", "--version").Output()
-	if err != nil {
-		return fmt.Errorf("[git clean]: could not determine git version")
-	}
-	verStr := strings.TrimPrefix(strings.TrimSpace(string(verOut)), "git version ")
-
-	major, err := strconv.Atoi(strings.Split(verStr, ".")[0])
-	if err != nil || major < 2 {
-		return fmt.Errorf("[git clean]: git 2.0+ required, found: %s", verStr)
-	}
-	return nil
 }
 
 // gitFetch attempts `git fetch --prune` against origin within the configured

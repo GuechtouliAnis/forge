@@ -123,3 +123,8 @@ domain = [
 # Applies to {message} and not the whole format
 # Set to 0 for no restriction.
 message_max_length = 100
+
+# Whether the domain prefix check should be case-sensitive.
+# If true, "feat" will not match "FEAT".
+# If false, "feat", "Feat", and "FEAT" are all treated as valid.
+domaine_case_sensitive = false

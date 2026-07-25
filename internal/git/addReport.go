@@ -5,8 +5,7 @@ import (
 	"strings"
 )
 
-// countState returns how many results in the slice carry the given state —
-// a small helper to keep summary construction free of repeated inline loops.
+// countState returns how many results in the slice carry the given state.
 func countState(results []fileResult, state fileState) int {
 	n := 0
 	for _, r := range results {
@@ -32,7 +31,7 @@ func printDryRunSummary(settled []fileResult, wouldStage []fileResult) {
 		return
 	}
 
-	fmt.Printf("\n%-50s %-15s %s\n", "FILE", "STATUS", "SIZE")
+	fmt.Printf("\n%-50s %-6s %-15s %s\n", "FILE", "CODE", "STATUS", "SIZE")
 	fmt.Println(strings.Repeat("-", 80))
 
 	for _, r := range settled {
@@ -43,10 +42,10 @@ func printDryRunSummary(settled []fileResult, wouldStage []fileResult) {
 		case stateFailedLarge:
 			status = "would-fail"
 		}
-		fmt.Printf("%-50s %-15s %.1f MB\n", r.Path, status, r.SizeMB)
+		fmt.Printf("%-50s %-6s %-15s %.1f MB\n", r.Path, r.Code, status, r.SizeMB)
 	}
 	for _, r := range wouldStage {
-		fmt.Printf("%-50s %-15s %.1f MB\n", r.Path, "would-stage", r.SizeMB)
+		fmt.Printf("%-50s %-6s %-15s %.1f MB\n", r.Path, r.Code, "would-stage", r.SizeMB)
 	}
 
 	blocked := countState(settled, stateBlockedHardcoded) + countState(settled, stateBlockedPattern)

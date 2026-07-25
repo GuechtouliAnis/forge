@@ -54,6 +54,12 @@ func CleanGit(cfg config.GitClean, remove bool, force bool, offlineFlag bool) er
 
 	defer stop()
 
+	// Verify we are actually inside a git repository.
+	// Fails fast with a clear error otherwise.
+	if err := gitCheck(ctx); err != nil {
+		return err
+	}
+
 	// Resolve the effective offline mode: an explicit --offline flag always
 	// wins, but the config's fetch_remote=false setting has the same effect
 	// if no flag was passed.
@@ -61,12 +67,6 @@ func CleanGit(cfg config.GitClean, remove bool, force bool, offlineFlag bool) er
 
 	days := cfg.StaleDays
 	behind := cfg.CommitsBehind
-
-	// Verify we are actually inside a git repository.
-	// Fails fast with a clear error otherwise.
-	if err := gitCheck(ctx); err != nil {
-		return err
-	}
 
 	// Synchronize with the remote and remove local references to branches
 	// that no longer exist on the server. This step is skipped entirely

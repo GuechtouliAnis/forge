@@ -52,9 +52,10 @@ type GitAdd struct {
 
 // GIT COMMIT
 type GitCommit struct {
-	Format        string   `toml:"format"`
-	Domains       []string `toml:"domain"`
-	MessageMaxLen int      `toml:"message_max_length"`
+	Format              string   `toml:"format"`
+	Domains             []string `toml:"domain"`
+	MessageMaxLen       int      `toml:"message_max_length"`
+	DomainCaseSensitive bool     `toml:"domaine_case_sensitive"`
 }
 
 // GIT CLEAN

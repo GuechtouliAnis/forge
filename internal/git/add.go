@@ -32,6 +32,7 @@ type fileResult struct {
 	State  fileState
 	Reason string
 	SizeMB float64
+	Code   string
 }
 
 // AddGit wraps `git add` with a validation layer applied to every file
@@ -59,6 +60,10 @@ type fileResult struct {
 // rather than failure.
 func AddGit(cfg config.GitAdd, envDefaultFile string, rawPaths []string, dryRun bool) error {
 
+	// Set up a cancellable context tied to OS interrupt/termination signals.
+	// This allows long-running operations below to be aborted cleanly
+	// mid-flight rather than leaving the terminal in an inconsistent state
+	// on Ctrl+C.
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
 		os.Interrupt,
@@ -66,14 +71,15 @@ func AddGit(cfg config.GitAdd, envDefaultFile string, rawPaths []string, dryRun 
 
 	defer stop()
 
+	// Verify we are actually inside a git repository.
+	// Fails fast with a clear error otherwise.
+	if err := gitCheck(ctx); err != nil {
+		return err
+	}
+
 	// At least one path is required
 	if len(rawPaths) == 0 {
 		return fmt.Errorf("[git add]: at least one path is required")
-	}
-
-	// check we are in a git repo
-	if err := gitCheck(ctx); err != nil {
-		return err
 	}
 
 	// Expand directories into individual files
@@ -83,10 +89,17 @@ func AddGit(cfg config.GitAdd, envDefaultFile string, rawPaths []string, dryRun 
 	}
 
 	// Classify every file through the guardrail pipeline
-	var results []fileResult // blocked / skipped entries — terminal, not staged
-	var toStage []fileResult // approved entries — pending the staging step
+
+	// blocked / skipped entries — terminal, not staged
+	var results []fileResult
+
+	// approved entries — pending the staging step
+	var toStage []fileResult
 
 	for _, f := range files {
+		// Cooperative cancellation: check for Ctrl+C/SIGTERM between
+		// files rather than only at the start, so a large batch can be
+		// interrupted mid-loop instead of running to completion.
 		if ctx.Err() != nil {
 			fmt.Println("\n[git add]: Interrupted — remaining files were not evaluated.")
 			break
@@ -99,6 +112,8 @@ func AddGit(cfg config.GitAdd, envDefaultFile string, rawPaths []string, dryRun 
 			return err
 		}
 
+		// Sort into files that pass the guardrail pipeline (to be staged)
+		// vs. files that were flagged/skipped (reported but not staged).
 		if shouldStage {
 			toStage = append(toStage, result)
 		} else {
@@ -119,7 +134,8 @@ func AddGit(cfg config.GitAdd, envDefaultFile string, rawPaths []string, dryRun 
 	blocked := countState(results, stateBlockedHardcoded) + countState(results, stateBlockedPattern)
 	skipped := countState(results, stateSkippedLarge)
 
-	fmt.Printf("\n[git add]: %d file(s) staged and ready to commit, %d blocked, %d skipped.\n", staged, blocked, skipped)
+	fmt.Printf("\n[git add]: %d file(s) staged and ready to commit, %d blocked, %d skipped.\n",
+		staged, blocked, skipped)
 
 	// A partial `git add` failure surfaces as a non-zero exit so CI
 	// pipelines and calling scripts can detect it, rather than reporting

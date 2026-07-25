@@ -1,22 +1,39 @@
 package git
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 )
 
 // UndoCommit reverts the last commit, buffering the commit message to .git/forge/undo_msg.txt.
 // Default is soft reset — staged files are preserved.
 // --hard wipes uncommitted changes and requires confirmation if the worktree is dirty.
 func UndoCommit(hard bool) error {
-	// confirm we're in a git repo and get the .git dir
-	gitDirOut, err := exec.Command("git", "rev-parse", "--git-dir").Output()
-	if err != nil {
-		return fmt.Errorf("not a git repository")
+
+	// Set up a cancellable context tied to OS interrupt/termination signals.
+	// This allows long-running operations below (particularly the concurrent
+	// "commits behind" evaluation) to be aborted cleanly mid-flight rather
+	// than leaving the terminal in an inconsistent state on Ctrl+C.
+	ctx, stop := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM)
+
+	defer stop()
+
+	// Verify we are actually inside a git repository.
+	// Fails fast with a clear error otherwise.
+	if err := gitCheck(ctx); err != nil {
+		return err
 	}
+
+	gitDirOut, _ := exec.Command("git", "rev-parse", "--git-dir").Output()
 	gitDir := strings.TrimSpace(string(gitDirOut))
 
 	// verify HEAD~1 exists

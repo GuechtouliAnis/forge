@@ -1,9 +1,13 @@
 package git
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
+	"syscall"
 )
 
 // RestoreFile recovers a file from git history using fuzzy path matching.
@@ -11,9 +15,22 @@ import (
 // --latest skips the version menu and restores from the most recent commit where the file existed.
 // --commit allows pinning to a specific commit hash.
 func RestoreFile(search string, latest bool, force bool, dryRun bool, commitHash string) error {
-	// confirm we're in a git repo
-	if err := exec.Command("git", "rev-parse", "--is-inside-work-tree").Run(); err != nil {
-		return fmt.Errorf("not a git repository")
+
+	// Set up a cancellable context tied to OS interrupt/termination signals.
+	// This allows long-running operations below to be aborted cleanly
+	// mid-flight rather than leaving the terminal in an inconsistent state
+	// on Ctrl+C.
+	ctx, stop := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM)
+
+	defer stop()
+
+	// Verify we are actually inside a git repository.
+	// Fails fast with a clear error otherwise.
+	if err := gitCheck(ctx); err != nil {
+		return err
 	}
 
 	// gather unique historical paths via git log

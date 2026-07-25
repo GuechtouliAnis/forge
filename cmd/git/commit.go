@@ -9,16 +9,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var commitCmd = &cobra.Command{
-	Use:   "commit <message>",
-	Short: "Opinionated git helpers (not a git replacement)",
-	Long: `A thin layer on top of git for enforcing commit conventions and reducing friction.
-Forge does not replicate git — it handles the parts git leaves to you.
-For branching, history, rebasing, and anything else: use git directly.`,
-	Args: cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		commitMsg := args[0]
+var (
+	commitMessageFlag string
+	commitAmendFlag   bool
+)
 
+var commitCmd = &cobra.Command{
+	Use:   "commit",
+	Short: "Commit staged changes with an enforced message format",
+	Long: `Validates a commit message against a configurable format before committing.
+The format supports {domain} and {message} placeholders - {domain} is
+constrained to a configured list of valid values, {message} is capped at a
+configurable maximum length. If both format and message_max_length are unset,
+validation is skipped entirely. --amend reuses the previous commit's message
+when no new message is supplied, or validates and applies a new one if -m is given.`,
+	// No positional arguments — the message is supplied via -m, per spec.
+	Args: cobra.NoArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, err := os.Getwd()
 		if err != nil {
 			return fmt.Errorf("could not determine working directory: %w", err)
@@ -29,19 +36,22 @@ For branching, history, rebasing, and anything else: use git directly.`,
 			return fmt.Errorf("could not load .forge.toml: %w", err)
 		}
 
-		valid, err := git.ValidateCommit(commitMsg, &cfg.Git.Commit)
-		if err != nil {
-			return fmt.Errorf("could not validate commit: %w", err)
-		}
-		if !valid {
-			fmt.Fprintln(os.Stderr, "✗ commit message does not match the required format")
+		// Distinguishes "-m not passed" from "-m passed as empty string" —
+		// only the former should trigger CommitGit's amend-reuse path.
+		messageProvided := cmd.Flags().Changed("message")
+
+		if err := git.CommitGit(&cfg.Git.Commit, commitMessageFlag, messageProvided, commitAmendFlag); err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
 		}
-		fmt.Println("✓ valid")
 		return nil
 	},
 }
 
 func init() {
+	commitCmd.Flags().StringVarP(&commitMessageFlag, "message", "m", "",
+		"The commit message to validate and commit")
+	commitCmd.Flags().BoolVar(&commitAmendFlag, "amend", false,
+		"Amend the previous commit")
 	gitCmd.AddCommand(commitCmd)
 }

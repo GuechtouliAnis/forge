@@ -10,7 +10,24 @@
 - `git.add.on_file_size_violation` config option to control oversized-file handling: `warn` (stage anyway, print a warning), `skip` (leave unstaged), or `fail` (abort the run).
 - `--dry-run` / `-d` flag on `forge git add` to preview staged/blocked/skipped decisions without touching the index.
 - `forge git add` path resolution distinguishes explicitly-named files from directory arguments: named files are always evaluated regardless of `.gitignore` status, so files like `.env` cannot bypass guardrails by being ignored; directory arguments are expanded via `git status --porcelain`, scoped to files with genuine unstaged or untracked changes.
+- `forge git add` now supports staging deletions for explicitly-named paths that no longer exist on disk but are still tracked by git, instead of rejecting them as invalid paths.
+- `forge git add --dry-run` output now includes a `CODE` column showing each file's raw git status code (e.g. `M`, `??`, `R`) alongside its would-stage/blocked/skipped status.
+- `forge git add`'s final summary now reports how many files failed to stage, in addition to staged/blocked/skipped counts.
+- `forge git commit` now actually runs `git commit` and reports the resulting commit hash on success — previously, a valid message was only validated and printed `✓ valid`, with no commit ever created.
+- `--amend` support for `forge git commit`: reuses the previous commit's message unvalidated when no new message is supplied, or validates and applies a new message when `-m` is given alongside it. Requires staged changes in either case.
+- `git.commit.domaine_case_sensitive` config option: when `true` (default), a domain-only case mismatch (e.g. `fix` instead of `FIX`) is accepted with a warning instead of being rejected outright; when `false`, domain matching is case-insensitive from the start with no warning.
+- `forge git commit` now rejects commits with nothing staged (`NOTHING_STAGED`), matching `git commit`'s own behavior, instead of allowing an empty commit through validation.
+- `forge git commit` now warns if any staged file matches a `.gitignore` rule (possible via an explicit `git add -f`), without blocking the commit.
 
+### Changed
+- `forge git commit`'s commit message is now supplied via `-m`/`--message` instead of a positional argument, matching the spec and git's own convention (`forge git commit -m "..."` instead of `forge git commit "..."`).
+
+### Fixed
+- `git.commit.domains` config key corrected to `domain` (singular) to match the field actually read from `.forge.toml` — previously the mismatch silently left the domain list empty, causing every commit with a `{domain}` format to fail with `"format contains {domain} but no valid domains are defined"` regardless of a correctly configured file.
+- `gitCheck` (shared preflight validation used by all `forge git` subcommands) now distinguishes "git is not installed" from "not a git repository" — previously a missing git installation was misreported as the latter.
+
+### Removed
+- `internal/git/commit_test.go` removed
 
 ## [1.7.0] - 2026-07-17
 
@@ -199,7 +216,7 @@
 - each command group now lives in its own package with a `Register(root *cobra.Command)` entry point
 - `cmd/root.go` now wires all command groups via `Register` calls instead of relying on `init()` side effects across files
 
-### Deleted
+### Removed
 - internal/project package which had `clone` and helper function `run` has been dropped and will be replaced
 
 ## [1.3.0] - 2026-04-11
