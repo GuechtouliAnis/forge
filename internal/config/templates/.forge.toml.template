@@ -128,3 +128,9 @@ message_max_length = 100
 # If true, "feat" will not match "FEAT".
 # If false, "feat", "Feat", and "FEAT" are all treated as valid.
 domaine_case_sensitive = false
+
+# How to handle staged files that match a .gitignore rule (e.g. staged via
+# `git add -f`, bypassing forge's own guardrails).
+# "warn"  - print a warning and continue with the commit (default)
+# "block" - refuse the commit until the ignored files are unstaged
+staged_ignored_files_mode = "warn"

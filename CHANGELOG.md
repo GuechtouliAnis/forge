@@ -14,10 +14,11 @@
 - `forge git add --dry-run` output now includes a `CODE` column showing each file's raw git status code (e.g. `M`, `??`, `R`) alongside its would-stage/blocked/skipped status.
 - `forge git add`'s final summary now reports how many files failed to stage, in addition to staged/blocked/skipped counts.
 - `forge git commit` now actually runs `git commit` and reports the resulting commit hash on success — previously, a valid message was only validated and printed `✓ valid`, with no commit ever created.
-- `--amend` support for `forge git commit`: reuses the previous commit's message unvalidated when no new message is supplied, or validates and applies a new message when `-m` is given alongside it. Requires staged changes in either case.
+- `--amend` support for `forge git commit`: reuses the previous commit's message unvalidated when no new message is supplied, or validates and applies a new message when `-m` is given alongside it. Unlike a regular commit, `--amend` does not require staged changes, since it can rewrite the previous commit's message alone with a clean index.
 - `git.commit.domaine_case_sensitive` config option: when `true` (default), a domain-only case mismatch (e.g. `fix` instead of `FIX`) is accepted with a warning instead of being rejected outright; when `false`, domain matching is case-insensitive from the start with no warning.
-- `forge git commit` now rejects commits with nothing staged (`NOTHING_STAGED`), matching `git commit`'s own behavior, instead of allowing an empty commit through validation.
-- `forge git commit` now warns if any staged file matches a `.gitignore` rule (possible via an explicit `git add -f`), without blocking the commit.
+- `forge git commit` now rejects regular commits with nothing staged (`NOTHING_STAGED`), matching `git commit`'s own behavior, instead of allowing an empty commit through validation. `--amend` is exempt from this check.
+- `git.commit.staged_ignored_files_mode` config option (`warn`/`block`, default `warn`): controls whether a staged file matching a `.gitignore` rule (possible via an explicit `git add -f`) triggers a warning that still allows the commit, or blocks it outright.
+- `--dry-run` flag on `forge git commit`: runs all the same validation and warning/block checks as a real commit, but stops short of actually committing — printing the message that would be used (or the previous message being reused, for a message-less `--amend`) along with the list of staged files that would be included.
 
 ### Changed
 - `forge git commit`'s commit message is now supplied via `-m`/`--message` instead of a positional argument, matching the spec and git's own convention (`forge git commit -m "..."` instead of `forge git commit "..."`).
@@ -25,6 +26,7 @@
 ### Fixed
 - `git.commit.domains` config key corrected to `domain` (singular) to match the field actually read from `.forge.toml` — previously the mismatch silently left the domain list empty, causing every commit with a `{domain}` format to fail with `"format contains {domain} but no valid domains are defined"` regardless of a correctly configured file.
 - `gitCheck` (shared preflight validation used by all `forge git` subcommands) now distinguishes "git is not installed" from "not a git repository" — previously a missing git installation was misreported as the latter.
+- Domain values in `git.commit.domain` containing regex metacharacters (e.g. `C++`) are now escaped before being compiled into the commit-message validation pattern — previously such characters were interpreted as regex syntax, silently altering match behavior.
 
 ### Removed
 - `internal/git/commit_test.go` removed

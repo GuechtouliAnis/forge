@@ -52,10 +52,11 @@ type GitAdd struct {
 
 // GIT COMMIT
 type GitCommit struct {
-	Format              string   `toml:"format"`
-	Domains             []string `toml:"domain"`
-	MessageMaxLen       int      `toml:"message_max_length"`
-	DomainCaseSensitive bool     `toml:"domaine_case_sensitive"`
+	Format                 string   `toml:"format"`
+	Domains                []string `toml:"domain"`
+	MessageMaxLen          int      `toml:"message_max_length"`
+	DomainCaseSensitive    bool     `toml:"domaine_case_sensitive"`
+	StagedIgnoredFilesMode string   `toml:"staged_ignored_files_mode"`
 }
 
 // GIT CLEAN
@@ -82,6 +83,10 @@ func defaults() *Config {
 				FetchRemote:         true,
 				FetchTimeoutSeconds: 30,
 				MaxWorkers:          0,
+			},
+			Commit: GitCommit{
+				DomainCaseSensitive:    false,
+				StagedIgnoredFilesMode: "warn",
 			},
 		},
 
