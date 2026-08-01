@@ -62,10 +62,13 @@ func CommitGit(cfg *config.GitCommit, message string, messageProvided bool, amen
 		return fmt.Errorf("[git commit]: a commit message is required")
 	}
 
+	// Get a list of staged files (without their status)
 	staged, err := stagedFiles(ctx)
 	if err != nil {
 		return err
 	}
+
+	// If nothing staged and we are not amending, error
 	if !amend && len(staged) == 0 {
 		return fmt.Errorf("[git commit]: nothing staged to commit")
 	}
@@ -82,8 +85,7 @@ func CommitGit(cfg *config.GitCommit, message string, messageProvided bool, amen
 		fmt.Printf("[git commit]: warning - %s\n", msg)
 	}
 
-	// --- Amend without a new message: reuse the previous message verbatim,
-	// completely unvalidated, per the amend flow's step 3.
+	// --- Amend without a new message: reuse the previous message verbatim.
 	if amend && !messageProvided {
 		if dryRun {
 			prevMsg, err := previousCommitMessage(ctx)
@@ -121,8 +123,9 @@ func CommitGit(cfg *config.GitCommit, message string, messageProvided bool, amen
 			result.ExpectedDomain, result.GotDomain)
 	}
 
-	// --- Run the actual git commit ------------------------------------------
+	// Dry run
 	if dryRun {
+		// Add pretty print for the dry run
 		if amend {
 			fmt.Printf("[git commit]: [dry-run] would amend previous commit with message: %s\n", message)
 		} else {
@@ -136,6 +139,7 @@ func CommitGit(cfg *config.GitCommit, message string, messageProvided bool, amen
 		return nil
 	}
 
+	// Run the actual git commit
 	gitArgs := []string{"commit", "-m", message}
 	if amend {
 		gitArgs = []string{"commit", "--amend", "-m", message}

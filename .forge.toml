@@ -116,6 +116,11 @@ domain = [
 # Set to 0 for no restriction.
 message_max_length = 100
 
+# Whether the domain prefix check should be case-sensitive.
+# If true, "feat" will not match "FEAT".
+# If false, "feat", "Feat", and "FEAT" are all treated as valid.
+domaine_case_sensitive = true
+
 # How to handle staged files that match a .gitignore rule (e.g. staged via
 # `git add -f`, bypassing forge's own guardrails).
 # "warn"  - print a warning and continue with the commit (default)

@@ -18,6 +18,8 @@ func stagedFiles(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("[git commit]: could not check staged changes: %w", err)
 	}
+
+	// Trim trailing newline from git's output
 	trimmed := strings.TrimSpace(string(out))
 	if trimmed == "" {
 		return nil, nil
@@ -28,14 +30,14 @@ func stagedFiles(ctx context.Context) ([]string, error) {
 // stagedIgnoredFiles returns every file that is currently staged despite
 // matching a .gitignore (or other standard exclude) rule. This can only
 // happen via an explicit force-add (`git add -f`), since forge git add's
-// own guardrails never bypass ignore rules on their own — so surfacing
-// it here is a safety net for whatever staged the index, not just files
-// forge itself staged.
+// own guardrails never bypass ignore rules on their own.
 func stagedIgnoredFiles(ctx context.Context) ([]string, error) {
 	out, err := exec.CommandContext(ctx, "git", "ls-files", "-c", "-i", "--exclude-standard").Output()
 	if err != nil {
 		return nil, fmt.Errorf("[git commit]: could not check staged files against .gitignore: %w", err)
 	}
+
+	// Trim trailing newline from git's output
 	trimmed := strings.TrimSpace(string(out))
 	if trimmed == "" {
 		return nil, nil

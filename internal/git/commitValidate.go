@@ -58,13 +58,18 @@ func CreatePattern(cfg *config.GitCommit, domainCaseInsensitive bool) (pattern s
 		for _, d := range cfg.Domains {
 			trimmed := strings.TrimSpace(d)
 			if trimmed != "" {
+				// Escape the domain string so any regex-special characters in it
+				// (e.g. '.', '+', '*') are treated literally, not as regex syntax,
+				// when this slice is later joined into a pattern.
 				validDomains = append(validDomains, regexp.QuoteMeta(trimmed))
 			}
 		}
 		if len(validDomains) == 0 {
-			return "", false, fmt.Errorf("format contains {domain} but no valid domains are defined")
+			return "", false, fmt.Errorf("[git commit]: format contains {domain} but no valid domains are defined")
 		}
 
+		// Join escaped domains into a regex alternation,
+		// e.g. domains = ["FEATURE", "REFACTOR", "FIX"] -> "FEATURE|REFACTOR|FIX".
 		alternation := strings.Join(validDomains, "|")
 		var domainRegex string
 		if domainCaseInsensitive {
@@ -74,6 +79,9 @@ func CreatePattern(cfg *config.GitCommit, domainCaseInsensitive bool) (pattern s
 		} else {
 			domainRegex = "(" + alternation + ")"
 		}
+		// Substitute the literal `{domain}` placeholder (escaped, since
+		// pattern itself was built via QuoteMeta/regexp.QuoteMeta earlier)
+		// with the actual capturing group built above.
 		pattern = strings.ReplaceAll(pattern, `\{domain\}`, domainRegex)
 		hasDomain = true
 	}
@@ -91,7 +99,7 @@ func CreatePattern(cfg *config.GitCommit, domainCaseInsensitive bool) (pattern s
 	// format string (e.g. unmatched brackets) would produce an invalid
 	// regex that would silently match nothing at validation time.
 	if _, compileErr := regexp.Compile(pattern); compileErr != nil {
-		return "", false, fmt.Errorf("resulting pattern is invalid: %w", compileErr)
+		return "", false, fmt.Errorf("[git commit]: resulting pattern is invalid: %w", compileErr)
 	}
 
 	return pattern, hasDomain, nil
@@ -144,6 +152,8 @@ func canonicalDomain(got string, domains []string) string {
 //     accepted with a CaseWarning. Failure on both passes is a genuine
 //     rejection.
 func ValidateCommit(message string, cfg *config.GitCommit) (CommitValidation, error) {
+
+	// Case-insensitive check
 	if !cfg.DomainCaseSensitive {
 		pattern, _, err := CreatePattern(cfg, true)
 		if err != nil {
@@ -154,12 +164,12 @@ func ValidateCommit(message string, cfg *config.GitCommit) (CommitValidation, er
 		}
 		matched, matchErr := regexp.MatchString("^"+pattern+"$", message)
 		if matchErr != nil {
-			return CommitValidation{}, fmt.Errorf("failed to match commit pattern: %w", matchErr)
+			return CommitValidation{}, fmt.Errorf("[git commit]: failed to match commit pattern: %w", matchErr)
 		}
 		return CommitValidation{Valid: matched && validateLength(message, cfg)}, nil
 	}
 
-	// --- Strict pass: domain matching is case-sensitive ---------------------
+	// Strict pass: domain matching is case-sensitive
 	strictPattern, hasDomain, err := CreatePattern(cfg, false)
 	if err != nil {
 		return CommitValidation{}, err
@@ -168,11 +178,14 @@ func ValidateCommit(message string, cfg *config.GitCommit) (CommitValidation, er
 		return CommitValidation{Valid: validateLength(message, cfg)}, nil
 	}
 
+	// Try the case-sensitive pattern first, since cfg.DomainCaseSensitive
+	// is true in this branch.
 	strictRe, compileErr := regexp.Compile("^" + strictPattern + "$")
 	if compileErr != nil {
-		return CommitValidation{}, fmt.Errorf("failed to match commit pattern: %w", compileErr)
+		return CommitValidation{}, fmt.Errorf("[git commit]: failed to match commit pattern: %w", compileErr)
 	}
 	if strictRe.MatchString(message) {
+		// Exact-case match: valid outright, no case warning needed.
 		return CommitValidation{Valid: validateLength(message, cfg)}, nil
 	}
 
@@ -183,20 +196,27 @@ func ValidateCommit(message string, cfg *config.GitCommit) (CommitValidation, er
 		return CommitValidation{Valid: false}, nil
 	}
 
+	// Recompile with the domain segment case-insensitive to check whether
+	// case was the *only* thing wrong.
 	loosePattern, _, err := CreatePattern(cfg, true)
 	if err != nil {
 		return CommitValidation{}, err
 	}
 	looseRe, compileErr := regexp.Compile("^" + loosePattern + "$")
 	if compileErr != nil {
-		return CommitValidation{}, fmt.Errorf("failed to match commit pattern: %w", compileErr)
+		return CommitValidation{}, fmt.Errorf("[git commit]: failed to match commit pattern: %w", compileErr)
 	}
 
+	// FindStringSubmatch (vs MatchString) so we can capture the actual
+	// domain text the user typed, for the case-mismatch warning below.
 	submatches := looseRe.FindStringSubmatch(message)
 	if submatches == nil || !validateLength(message, cfg) {
+		// Still no match (or too long): not a case issue, reject outright.
 		return CommitValidation{Valid: false}, nil
 	}
 
+	// Loose match succeeded where strict failed: accept, but warn about
+	// the case mismatch and surface expected vs. got for the message.
 	got := submatches[1]
 	return CommitValidation{
 		Valid:          true,
