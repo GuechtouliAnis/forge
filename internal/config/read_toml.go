@@ -2,18 +2,26 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/GuechtouliAnis/forge/internal/repo" // Adjust import as needed
+	"github.com/GuechtouliAnis/forge/internal/repo"
 	"github.com/pelletier/go-toml/v2"
 )
 
-// Load reads .forge.toml from path and merges it over defaults.
-// Missing file is not an error — defaults are returned as-is.
 func Load(path string) (*Config, error) {
 	cfg := defaults()
 	targetName := ".forge.toml"
+
+	resolvedDir, found, err := findConfigDir(path)
+	if err != nil {
+		return nil, err
+	}
+	if resolvedDir != path && !found {
+		fmt.Println("[forge]: no .forge.toml found — using defaults")
+	}
+	path = resolvedDir
 
 	// 1. FAST PATH: Attempt direct read first
 	tomlPath := filepath.Join(path, targetName)

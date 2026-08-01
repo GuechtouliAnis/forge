@@ -57,7 +57,7 @@ func CommitGit(cfg *config.GitCommit, message string, messageProvided bool, amen
 		return err
 	}
 
-	// --- NO_MESSAGE: required unless amending without a new message -------
+	// NO_MESSAGE: required unless amending without a new message
 	if !messageProvided && !amend {
 		return fmt.Errorf("[git commit]: a commit message is required")
 	}
@@ -73,19 +73,15 @@ func CommitGit(cfg *config.GitCommit, message string, messageProvided bool, amen
 		return fmt.Errorf("[git commit]: nothing staged to commit")
 	}
 
-	// Non-fatal safety net: warn or block, per staged_ignored_files_mode, if
-	// anything staged (however it got staged) matches a .gitignore rule.
-	if ignored, err := stagedIgnoredFiles(ctx); err != nil {
+	// Non-fatal safety net: offer to unstage anything matching a
+	// .gitignore rule (however it got staged — typically via an explicit
+	// git add -f). If declined, fall back to staged_ignored_files_mode
+	// (warn or block) as before.
+	if staged, err = resolveIgnoredFiles(ctx, cfg, dryRun, amend, staged); err != nil {
 		return err
-	} else if len(ignored) > 0 {
-		msg := fmt.Sprintf("staged but found in .gitignore: %s", strings.Join(ignored, ", "))
-		if cfg.StagedIgnoredFilesMode == "block" {
-			return fmt.Errorf("[git commit]: %s", msg)
-		}
-		fmt.Printf("[git commit]: warning - %s\n", msg)
 	}
 
-	// --- Amend without a new message: reuse the previous message verbatim.
+	// Amend without a new message: reuse the previous message verbatim.
 	if amend && !messageProvided {
 		if dryRun {
 			prevMsg, err := previousCommitMessage(ctx)
@@ -107,7 +103,7 @@ func CommitGit(cfg *config.GitCommit, message string, messageProvided bool, amen
 		return nil
 	}
 
-	// --- Validate the supplied message (new commit, or amend -m) ----------
+	// Validate the supplied message (new commit, or amend -m)
 	result, err := ValidateCommit(message, cfg)
 	if err != nil {
 		return fmt.Errorf("[git commit]: %w", err)

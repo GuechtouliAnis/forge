@@ -1,7 +1,9 @@
 package git
 
 import (
+	"context"
 	"fmt"
+	"os/exec"
 	"regexp"
 	"strings"
 
@@ -224,4 +226,49 @@ func ValidateCommit(message string, cfg *config.GitCommit) (CommitValidation, er
 		GotDomain:      got,
 		ExpectedDomain: canonicalDomain(got, cfg.Domains),
 	}, nil
+}
+
+// resolveIgnoredFiles checks for staged files matching a .gitignore rule
+// and, outside of dry-run, offers to unstage them interactively. If the
+// user declines (or dry-run is active, where no mutation is allowed),
+// falls back to cfg.StagedIgnoredFilesMode (warn or block). Returns the
+// possibly-updated staged file list, refreshed after a successful unstage.
+func resolveIgnoredFiles(ctx context.Context, cfg *config.GitCommit, dryRun bool, amend bool, staged []StagedFile) ([]StagedFile, error) {
+	ignored, err := stagedIgnoredFiles(ctx)
+	if err != nil {
+		return staged, err
+	}
+	if len(ignored) == 0 {
+		return staged, nil
+	}
+
+	if !dryRun {
+		fmt.Printf("[git commit]: staged but found in .gitignore: %s\nUnstage ignored files? [y/N]: ",
+			strings.Join(ignored, ", "))
+		var input string
+		fmt.Scanln(&input)
+		if strings.ToLower(input) == "y" || strings.ToLower(input) == "yes" {
+			args := append([]string{"restore", "--staged", "--"}, ignored...)
+			out, err := exec.CommandContext(ctx, "git", args...).CombinedOutput()
+			if err != nil {
+				return staged, fmt.Errorf("[git commit]: failed to unstage ignored files: %s", strings.TrimSpace(string(out)))
+			}
+			fmt.Println("[git commit]: unstaged ignored files.")
+			staged, err = stagedFiles(ctx)
+			if err != nil {
+				return staged, err
+			}
+			if !amend && len(staged) == 0 {
+				return staged, fmt.Errorf("[git commit]: nothing staged to commit")
+			}
+			return staged, nil
+		}
+	}
+
+	msg := fmt.Sprintf("staged but found in .gitignore: %s", strings.Join(ignored, ", "))
+	if cfg.StagedIgnoredFilesMode == "block" {
+		return staged, fmt.Errorf("[git commit]: %s", msg)
+	}
+	fmt.Printf("[git commit]: warning - %s\n", msg)
+	return staged, nil
 }

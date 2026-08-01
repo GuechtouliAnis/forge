@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-08-01
+
 ### Added
 - `forge git add` command: wraps `git add` with a guardrail pipeline applied to every file before it reaches the index.
 - `.env` and the configured `env.default_file` are unconditionally rejected by `forge git add`, regardless of `blocklist_patterns` or how the file is named on the command line.
@@ -18,7 +20,9 @@
 - `git.commit.domaine_case_sensitive` config option: when `true` (default), a domain-only case mismatch (e.g. `fix` instead of `FIX`) is accepted with a warning instead of being rejected outright; when `false`, domain matching is case-insensitive from the start with no warning.
 - `forge git commit` now rejects regular commits with nothing staged (`NOTHING_STAGED`), matching `git commit`'s own behavior, instead of allowing an empty commit through validation. `--amend` is exempt from this check.
 - `git.commit.staged_ignored_files_mode` config option (`warn`/`block`, default `warn`): controls whether a staged file matching a `.gitignore` rule (possible via an explicit `git add -f`) triggers a warning that still allows the commit, or blocks it outright.
-- `--dry-run` flag on `forge git commit`: runs all the same validation and warning/block checks as a real commit, but stops short of actually committing — printing the message that would be used (or the previous message being reused, for a message-less `--amend`) along with the list of staged files that would be included.
+- `--dry-run` flag on `forge git commit`: runs all the same validation and warning/block checks as a real commit, but stops short of actually committing — printing the message that would be used (or the previous message being reused, for a message-less `--amend`), followed by a table of staged files and their status codes.
+- When a staged file matches a `.gitignore` rule, `forge git commit` now offers to unstage it interactively (`[y/N]`) before falling back to `staged_ignored_files_mode`; this prompt is skipped during `--dry-run`, which never mutates git state.
+- `.forge.toml` lookup now walks upward from the current directory (stopping at the file, a `.git` boundary, or filesystem root) instead of only checking the current directory, so commands work correctly from subdirectories; prints `no .forge.toml found — using defaults` when nothing is found.
 
 ### Changed
 - `forge git commit`'s commit message is now supplied via `-m`/`--message` instead of a positional argument, matching the spec and git's own convention (`forge git commit -m "..."` instead of `forge git commit "..."`).
