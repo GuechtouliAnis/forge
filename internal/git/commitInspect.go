@@ -7,14 +7,20 @@ import (
 	"strings"
 )
 
-// stagedFiles returns the list of files currently staged for commit, or
-// nil if none are staged. The default (non-amend) flow treats an empty
-// result as NOTHING_STAGED; amend does not require staged changes, since
-// it can rewrite the previous commit's message or tree alone — but the
-// list is fetched regardless so dry-run output can show what would be
-// included alongside the amend, if anything.
-func stagedFiles(ctx context.Context) ([]string, error) {
-	out, err := exec.CommandContext(ctx, "git", "diff", "--cached", "--name-only").Output()
+// StagedFile pairs a staged file's path with its git status code
+// (e.g. "M", "A", "D"), as reported by `git diff --cached --name-status`.
+type StagedFile struct {
+	Code string
+	Path string
+}
+
+// stagedFiles returns every currently staged file along with its git
+// status code (e.g. "M", "A", "D"), as reported by
+// `git diff --cached --name-status`.
+func stagedFiles(ctx context.Context) ([]StagedFile, error) {
+
+	// Run git diff --cached --name-status to get the staged files with their code
+	out, err := exec.CommandContext(ctx, "git", "diff", "--cached", "--name-status").Output()
 	if err != nil {
 		return nil, fmt.Errorf("[git commit]: could not check staged changes: %w", err)
 	}
@@ -24,7 +30,22 @@ func stagedFiles(ctx context.Context) ([]string, error) {
 	if trimmed == "" {
 		return nil, nil
 	}
-	return strings.Split(trimmed, "\n"), nil
+
+	lines := strings.Split(trimmed, "\n")
+	// Pre-size at len(lines): the common case is one file per line, so
+	// this avoids reallocation without over-allocating meaningfully.
+	files := make([]StagedFile, 0, len(lines))
+	for _, line := range lines {
+		// --name-status output is tab-separated: "<code>\t<path>".
+		parts := strings.SplitN(line, "\t", 2)
+		if len(parts) != 2 {
+			// Malformed line (shouldn't happen with well-formed git
+			// output) — skip rather than fail the whole call.
+			continue
+		}
+		files = append(files, StagedFile{Code: parts[0], Path: parts[1]})
+	}
+	return files, nil
 }
 
 // stagedIgnoredFiles returns every file that is currently staged despite

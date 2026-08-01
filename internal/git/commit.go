@@ -92,10 +92,7 @@ func CommitGit(cfg *config.GitCommit, message string, messageProvided bool, amen
 			if err != nil {
 				return err
 			}
-			fmt.Printf("[git commit]: [dry-run] would amend previous commit (message unchanged): %s\n", prevMsg)
-			if len(staged) > 0 {
-				fmt.Printf("[git commit]: [dry-run] staged files to include: %s\n", strings.Join(staged, ", "))
-			}
+			printCommitDryRunSummary(staged, prevMsg, true)
 			return nil
 		}
 		out, err := exec.CommandContext(ctx, "git", "commit", "--amend", "--no-edit").CombinedOutput()
@@ -125,17 +122,7 @@ func CommitGit(cfg *config.GitCommit, message string, messageProvided bool, amen
 
 	// Dry run
 	if dryRun {
-		// Add pretty print for the dry run
-		if amend {
-			fmt.Printf("[git commit]: [dry-run] would amend previous commit with message: %s\n", message)
-		} else {
-			fmt.Printf("[git commit]: [dry-run] would commit with message: %s\n", message)
-		}
-		if len(staged) > 0 {
-			fmt.Printf("[git commit]: [dry-run] staged files to include: %s\n", strings.Join(staged, ", "))
-		} else if amend {
-			fmt.Println("[git commit]: [dry-run] no staged changes — only the message would change")
-		}
+		printCommitDryRunSummary(staged, message, amend)
 		return nil
 	}
 
