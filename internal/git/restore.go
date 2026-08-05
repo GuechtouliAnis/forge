@@ -11,10 +11,10 @@ import (
 )
 
 // RestoreFile recovers a file from git history using fuzzy path matching.
-// Collision detection blocks overwrites of dirty/staged files unless --force is passed.
+// Collision detection prompts before overwriting dirty/staged files.
 // --latest skips the version menu and restores from the most recent commit where the file existed.
 // --commit allows pinning to a specific commit hash.
-func RestoreFile(search string, latest bool, force bool, dryRun bool, commitHash string) error {
+func RestoreFile(search string, latest bool, dryRun bool, commitHash string) error {
 
 	// Set up a cancellable context tied to OS interrupt/termination signals.
 	// This allows long-running operations below to be aborted cleanly
@@ -34,7 +34,7 @@ func RestoreFile(search string, latest bool, force bool, dryRun bool, commitHash
 	}
 
 	// gather unique historical paths via git log
-	logOut, err := exec.Command("git", "log", "--all", "--name-only", "--pretty=format:").Output()
+	logOut, err := exec.CommandContext(ctx, "git", "log", "--all", "--name-only", "--pretty=format:").Output()
 	if err != nil {
 		return fmt.Errorf("could not read git history: %w", err)
 	}
@@ -68,27 +68,45 @@ func RestoreFile(search string, latest bool, force bool, dryRun bool, commitHash
 		for i, m := range matches {
 			fmt.Printf("  [%d] %s\n", i+1, m)
 		}
-		fmt.Print("Select: ")
+		fmt.Print("Select (0 to cancel): ")
 		var choice int
 		fmt.Scan(&choice)
+		if choice == 0 {
+			fmt.Println("Cancelled.")
+			return nil
+		}
 		if choice < 1 || choice > len(matches) {
 			return fmt.Errorf("invalid selection")
 		}
 		resolvedPath = matches[choice-1]
 	}
 
-	// collision detection — block if file is dirty or staged unless --force
-	statusOut, err := exec.Command("git", "status", "--porcelain", resolvedPath).Output()
+	// collision detection — prompt before overwriting a dirty/staged file
+	statusOut, err := exec.CommandContext(ctx, "git", "status", "--porcelain", resolvedPath).Output()
 	if err != nil {
 		return fmt.Errorf("could not check file status: %w", err)
 	}
-	if strings.TrimSpace(string(statusOut)) != "" && !force {
-		return fmt.Errorf("file has uncommitted changes — use --force to overwrite")
+	if strings.TrimSpace(string(statusOut)) != "" {
+		fmt.Printf("%s has uncommitted changes. Overwrite? [y/N]: ", resolvedPath)
+		var input string
+		fmt.Scanln(&input)
+		if strings.ToLower(input) != "y" && strings.ToLower(input) != "yes" {
+			fmt.Println("Aborted.")
+			return nil
+		}
 	}
 
-	// check if file is gitignored — warn but don't block unless --force skips prompt
-	ignoredOut, _ := exec.Command("git", "check-ignore", "-q", resolvedPath).Output()
-	if len(ignoredOut) > 0 && !force {
+	// check if file is gitignored — warn but don't block
+	ignoredOut, ignoreErr := exec.CommandContext(ctx, "git", "check-ignore", "-q", resolvedPath).Output()
+	// check-ignore exits 1 (non-zero) when the path is simply not ignored —
+	// that's expected and not a real error. Only treat it as a failure when
+	// it's neither "matched" (exit 0) nor a plain "not ignored" (exit 1).
+	if ignoreErr != nil {
+		if exitErr, ok := ignoreErr.(*exec.ExitError); !ok || exitErr.ExitCode() > 1 {
+			return fmt.Errorf("could not check .gitignore status: %w", ignoreErr)
+		}
+	}
+	if len(ignoredOut) > 0 {
 		fmt.Printf("WARNING: %s is gitignored. Restore anyway? [y/N]: ", resolvedPath)
 		var input string
 		fmt.Scanln(&input)
@@ -105,7 +123,7 @@ func RestoreFile(search string, latest bool, force bool, dryRun bool, commitHash
 		targetHash = commitHash
 	} else if latest {
 		// find the most recent commit where the file actually existed (added > 0)
-		hashesOut, err := exec.Command("git", "log", "--all", "--numstat",
+		hashesOut, err := exec.CommandContext(ctx, "git", "log", "--all", "--numstat",
 			"--pretty=format:%H", "--", resolvedPath).Output()
 		if err != nil || strings.TrimSpace(string(hashesOut)) == "" {
 			return fmt.Errorf("no commit history found for %s", resolvedPath)
@@ -139,7 +157,7 @@ func RestoreFile(search string, latest bool, force bool, dryRun bool, commitHash
 		}
 	} else {
 		// fetch last 10 commits that touched this file with stats
-		logOut, err := exec.Command("git", "log", "-n", "10", "--numstat",
+		logOut, err := exec.CommandContext(ctx, "git", "log", "-n", "10", "--numstat",
 			"--pretty=format:%h|%cr|%s", "--", resolvedPath).Output()
 		if err != nil || strings.TrimSpace(string(logOut)) == "" {
 			return fmt.Errorf("no commit history found for %s", resolvedPath)
@@ -208,9 +226,13 @@ func RestoreFile(search string, latest bool, force bool, dryRun bool, commitHash
 		for i, c := range restorable {
 			fmt.Printf("  [%d] %s\n", i+1, c.display)
 		}
-		fmt.Print("Select: ")
+		fmt.Print("Select (0 to cancel): ")
 		var choice int
 		fmt.Scan(&choice)
+		if choice == 0 {
+			fmt.Println("Cancelled.")
+			return nil
+		}
 		if choice < 1 || choice > len(restorable) {
 			return fmt.Errorf("invalid selection")
 		}
@@ -225,15 +247,18 @@ func RestoreFile(search string, latest bool, force bool, dryRun bool, commitHash
 	}
 
 	// restore the file from the resolved commit
-	out, err := exec.Command("git", "checkout", targetHash, "--", resolvedPath).CombinedOutput()
+	out, err := exec.CommandContext(ctx, "git", "checkout", targetHash, "--", resolvedPath).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("git checkout failed: %s — %w", strings.TrimSpace(string(out)), err)
 	}
 
-	exec.Command("git", "restore", "--staged", resolvedPath).Run()
+	if unstageOut, err := exec.CommandContext(ctx, "git", "restore", "--staged", resolvedPath).CombinedOutput(); err != nil {
+		return fmt.Errorf("restored file but failed to unstage it: %s — %w", strings.TrimSpace(string(unstageOut)), err)
+	}
 
 	// get diff stats from the selected commit directly
-	statsOut, _ := exec.Command("git", "show", "--numstat", "--pretty=format:", targetHash, "--", resolvedPath).Output()
+	statsOut, _ := exec.CommandContext(ctx, "git", "show", "--numstat", "--pretty=format:",
+		targetHash, "--", resolvedPath).Output()
 	stats := ""
 	if fields := strings.Fields(strings.TrimSpace(string(statsOut))); len(fields) >= 2 {
 		stats = fmt.Sprintf(" (+%s, -%s)", fields[0], fields[1])
