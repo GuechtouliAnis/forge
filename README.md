@@ -124,13 +124,6 @@ forge git clean --days 30 --remove          # show deletions and prompt
 forge git clean --days 30 --remove --force  # delete without prompt
 ```
 
-#### `forge git undo`
-Reverts the last commit and buffers the commit message to `.git/forge/undo_msg.txt` for reuse. Soft reset by default — staged files are preserved. `--hard` wipes uncommitted changes and requires confirmation if the worktree is dirty. Prompts before overwriting an existing buffered message on consecutive undos.
-```bash
-forge git undo          # soft reset, buffer last commit message
-forge git undo --hard   # destructive reset, prompt if dirty worktree
-```
-
 #### `forge git restore`
 Recovers a deleted or modified file from git history using fuzzy path matching. Deletion commits are filtered from the picker. Restored file is left unstaged for review.
 ```bash

@@ -109,6 +109,7 @@ domain = [
     "DOCS",   # Documentation
     "TEST",   # Tests
     "CHORE",  # Maintenance (deps, CI, version bumps)
+    "DEPRECATE",
 ]
 
 # Maximum allowed length for the commit message

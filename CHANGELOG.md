@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Removed
+- `forge git undo` — removed; deprecated due to being redundant with `git reset --soft HEAD~1`
+
 ## [1.8.0] - 2026-08-01
 
 ### Added
