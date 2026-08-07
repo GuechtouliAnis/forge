@@ -10,7 +10,7 @@ import (
 
 // gitCheck performs pre-flight validation: confirms we're inside a git
 // repository and that the installed git version meets the minimum requirement.
-func gitCheck(ctx context.Context) error {
+func GitCheck(ctx context.Context) error {
 
 	// Confirm git is installed
 	if _, err := exec.LookPath("git"); err != nil {

@@ -60,6 +60,7 @@ func resolvePaths(ctx context.Context, rawPaths []string) ([]resolvedFile, error
 		// Missing from disk — check whether git recognizes this as a
 		// tracked deletion before concluding the path is simply invalid.
 		deleted, gerr := explicitDeletedFile(ctx, clean)
+		fmt.Println(deleted)
 		if gerr != nil {
 			return nil, gerr
 		}

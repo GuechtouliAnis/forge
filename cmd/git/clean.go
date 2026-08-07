@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/GuechtouliAnis/forge/internal/config"
-	"github.com/GuechtouliAnis/forge/internal/git"
+	gitClean "github.com/GuechtouliAnis/forge/internal/git/clean"
 	"github.com/spf13/cobra"
 )
 
@@ -53,7 +53,7 @@ main, master, and the default branch are always protected.`,
 			FetchTimeoutSeconds: cfg.Git.Clean.FetchTimeoutSeconds,
 		}
 
-		return git.CleanGit(cleanCfg, remove, force, offline)
+		return gitClean.CleanGit(cleanCfg, remove, force, offline)
 	},
 }
 

@@ -3,8 +3,14 @@
 ## [Unreleased]
 
 ### Changed
-- Refactored `forge git restore` internals, decomposing the monolithic `RestoreFile` logic across dedicated modules for Git CLI inspection (`restoreInspect.go`), path and commit parsing (`restoreMatch.go`), and interactive terminal UX (`restoreReport.go`).
-- Standardized CLI output formatting, warnings, error messages, and user prompts across `forge git restore` with a consistent `[git restore]:` prefix.
+- Refactored the internal architecture of all `forge git` commands (`add`, `clean`, `commit`, and `restore`), migrating them from a monolithic `internal/git` package into isolated, command-specific subpackages (`internal/git/add`, `internal/git/clean`, etc.).
+- Decomposed monolithic command logic across dedicated modules within their respective subpackages (e.g., splitting Git inspection, path matching, classification, and terminal reporting).
+- Updated all command entrypoints in `cmd/git/` (`add.go`, `clean.go`, `commit.go`, `restore.go`) to route to the new subpackages.
+- Exported shared repository validation (`GitCheck`) and concurrency utilities (`worker_limit_*`) in the root `internal/git` package to support cross-package imports.
+- Standardized CLI output formatting, warnings, error messages, and user prompts across all `forge git` commands with consistent `[git <command>]:` prefixes.
+
+### Fixed
+- Fixed a bug in `forge git add` where explicit unstaged deletions were rejected with a "path does not exist" error instead of successfully staging the deletion.
 
 ### Removed
 - `forge git undo` — removed; deprecated due to being redundant with `git reset --soft HEAD~1`

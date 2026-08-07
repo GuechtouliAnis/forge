@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/GuechtouliAnis/forge/internal/config"
+	"github.com/GuechtouliAnis/forge/internal/git"
 )
 
 // CleanGit scans all local branches in the current repository and identifies
@@ -56,7 +57,7 @@ func CleanGit(cfg config.GitClean, remove bool, force bool, offlineFlag bool) er
 
 	// Verify we are actually inside a git repository.
 	// Fails fast with a clear error otherwise.
-	if err := gitCheck(ctx); err != nil {
+	if err := git.GitCheck(ctx); err != nil {
 		return err
 	}
 

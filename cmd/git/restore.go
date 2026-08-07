@@ -1,7 +1,7 @@
 package cmdgit
 
 import (
-	"github.com/GuechtouliAnis/forge/internal/git"
+	gitRestore "github.com/GuechtouliAnis/forge/internal/git/restore"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +15,7 @@ var restoreCmd = &cobra.Command{
 		latest, _ := cmd.Flags().GetBool("latest")
 		commit, _ := cmd.Flags().GetString("commit")
 		dryRun, _ := cmd.Flags().GetBool("dry-run")
-		return git.RestoreFile(args[0], latest, dryRun, commit)
+		return gitRestore.RestoreFile(args[0], latest, dryRun, commit)
 	},
 }
 

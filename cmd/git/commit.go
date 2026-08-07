@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/GuechtouliAnis/forge/internal/config"
-	"github.com/GuechtouliAnis/forge/internal/git"
+	gitCommit "github.com/GuechtouliAnis/forge/internal/git/commit"
 	"github.com/spf13/cobra"
 )
 
@@ -43,7 +43,7 @@ committing, printing the message and staged files that would be included instead
 		// only the former should trigger CommitGit's amend-reuse path.
 		messageProvided := cmd.Flags().Changed("message")
 
-		if err := git.CommitGit(&cfg.Git.Commit, commitMessageFlag, messageProvided, commitAmendFlag, commitDryRunFlag); err != nil {
+		if err := gitCommit.CommitGit(&cfg.Git.Commit, commitMessageFlag, messageProvided, commitAmendFlag, commitDryRunFlag); err != nil {
 
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)

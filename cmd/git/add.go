@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/GuechtouliAnis/forge/internal/config"
-	"github.com/GuechtouliAnis/forge/internal/git"
+	gitAdd "github.com/GuechtouliAnis/forge/internal/git/add"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +41,7 @@ All checks are dry-run safe.`,
 		// NOTE: assumes the resolved env default filename lives at
 		// cfg.Env.DefaultFile — adjust this field reference to match the
 		// actual config.Env struct if the name differs.
-		err = git.AddGit(cfg.Git.Add, cfg.Env.DefaultFile, paths, dryRunFlag)
+		err = gitAdd.AddGit(cfg.Git.Add, cfg.Env.DefaultFile, paths, dryRunFlag)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)

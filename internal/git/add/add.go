@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"github.com/GuechtouliAnis/forge/internal/config"
+	git "github.com/GuechtouliAnis/forge/internal/git"
 )
 
 // fileState is the terminal classification assigned to a single file after
@@ -73,7 +74,7 @@ func AddGit(cfg config.GitAdd, envDefaultFile string, rawPaths []string, dryRun 
 
 	// Verify we are actually inside a git repository.
 	// Fails fast with a clear error otherwise.
-	if err := gitCheck(ctx); err != nil {
+	if err := git.GitCheck(ctx); err != nil {
 		return err
 	}
 

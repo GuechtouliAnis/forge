@@ -3,6 +3,8 @@ package git
 import (
 	"fmt"
 	"runtime"
+
+	"github.com/GuechtouliAnis/forge/internal/git"
 )
 
 // BranchInfo holds metadata about a branch collected during the clean pass.
@@ -82,7 +84,7 @@ func computeWorkerCount(jobCount int, cfgOverride int) int {
 
 	n := runtime.GOMAXPROCS(0) * 2
 
-	if limit, ok := fileDescriptorLimit(); ok {
+	if limit, ok := git.FileDescriptorLimit(); ok {
 		budget := int((limit - fdReserve) / fdPerWorker)
 		if budget < n {
 			n = budget

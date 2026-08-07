@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+
+	"github.com/GuechtouliAnis/forge/internal/git"
 )
 
 // RestoreFile recovers a file from git history using fuzzy path matching.
@@ -25,7 +27,7 @@ func RestoreFile(search string, latest bool, dryRun bool, commitHash string) err
 		syscall.SIGTERM)
 	defer stop()
 
-	if err := gitCheck(ctx); err != nil {
+	if err := git.GitCheck(ctx); err != nil {
 		return err
 	}
 

@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/GuechtouliAnis/forge/internal/config"
+	"github.com/GuechtouliAnis/forge/internal/git"
 )
 
 // commitHash returns the short hash of HEAD immediately after a commit,
@@ -53,7 +54,7 @@ func CommitGit(cfg *config.GitCommit, message string, messageProvided bool, amen
 
 	// Verify we are actually inside a git repository.
 	// Fails fast with a clear error otherwise.
-	if err := gitCheck(ctx); err != nil {
+	if err := git.GitCheck(ctx); err != nil {
 		return err
 	}
 
