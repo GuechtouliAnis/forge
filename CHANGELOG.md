@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+- Refactored `forge git restore` internals, decomposing the monolithic `RestoreFile` logic across dedicated modules for Git CLI inspection (`restoreInspect.go`), path and commit parsing (`restoreMatch.go`), and interactive terminal UX (`restoreReport.go`).
+- Standardized CLI output formatting, warnings, error messages, and user prompts across `forge git restore` with a consistent `[git restore]:` prefix.
+
 ### Removed
 - `forge git undo` — removed; deprecated due to being redundant with `git reset --soft HEAD~1`
 
